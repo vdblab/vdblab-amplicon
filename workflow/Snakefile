@@ -1,0 +1,138 @@
+from pathlib import Path
+import glob
+import os
+import shutil
+import subprocess
+import sys
+import math
+import yaml
+
+
+include: "rules/common.smk"
+
+
+from snakemake.utils import min_version, validate
+
+min_version("6.0")
+
+
+
+
+configfile: os.path.join(workflow.basedir, "../config/config.yaml")
+
+
+# validate(config, "runconfig.schema.yaml")
+
+
+localrules:
+    all,
+
+if config["stage"] != "annotate":
+    config["asv_fasta"] = f"denoise/{config['pool']}_asvs.fasta"
+
+
+module demux:
+    snakefile:
+        "rules/demux.smk"
+    config:
+        config
+
+
+use rule * from demux as demux_*
+
+config["pooling"] = "partial"
+config["primer_F"], config["primer_R"] = extract_primers(config)
+
+# db_files = get_files_from_db_dir(config)
+# config["db_files"] = db_files
+#config["samples"] = clean_oligos_and_return_samples(input_files)
+#config["input_files"]["oligos"] = "tmp.oligos"
+
+
+module preprocess:
+    snakefile:
+        "rules/preprocess.smk"
+    config:
+        config
+    skip_validation: True
+
+
+use rule * from preprocess as preprocess_*
+
+
+# note that the default pipeline
+if config["pooling"] == "full" or True:
+
+    module denoise:
+        snakefile:
+            "rules/denoise.smk"
+        config:
+            config
+
+
+else:
+
+    module denoisse:
+        snakefile:
+            "rules/denoise_unpooled.smk"
+        config:
+            config
+
+
+use rule * from denoise as denoise_*
+
+
+module annotate:
+    snakefile:
+        "rules/annotate.smk"
+    config:
+        config
+    skip_validation: True
+
+
+use rule * from annotate as annotate_*
+
+
+if config["skip_anno"]:
+    Path("annotation_skipped.txt").touch()
+
+    use rule all from annotate as annotate_all with:
+        input:
+            "annotation_skipped.txt",
+
+
+
+
+onstart:
+    with open("config_used.yml", "w") as outfile:
+        yaml.dump(config, outfile)
+
+
+
+
+outputs = {
+    # "all": [
+    #     rules.preprocess_all.input,
+    #     rules.demux_all.input,
+    #     rules.denoise_all.input,
+    #     rules.annotate_all.input,
+    # ],
+    "preprocess": [
+        rules.preprocess_all.input,
+    ],
+    "demux": [
+        rules.demux_all.input,
+    ],
+    "denoise": [
+        rules.denoise_all.input,
+    ],
+    "annotate": [
+        rules.annotate_all.input,
+    ],
+}
+
+
+rule all:
+    input:
+        outputs[config["stage"]],
+    default_target: True

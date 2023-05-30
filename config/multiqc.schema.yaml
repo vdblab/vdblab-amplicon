@@ -1,0 +1,24 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+
+description: vdb_16S multiqc config schema
+
+type: object
+
+properties:
+  # inputs
+  pool:
+    type: string
+  multiqc_config:
+    type: string
+  multiqc_reports:
+    type: array
+    items:
+      type: string
+    minItems: 1
+    uniqueItems: true
+
+required:
+  - pool
+  - multiqc_config
+  - multiqc_reports

@@ -1,0 +1,50 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+
+description: vdb_16S preprocess config schema
+
+type: object
+
+properties:
+  # inputs
+  pool:
+    type: string
+  primer_F:
+    type: string
+  primer_R:
+    type: string
+  manifest:
+    type: string
+
+  # run parameters
+  trunclen_R1:
+    type: integer
+    minimum: 1
+    default: 200
+  trunclen_R2:
+    type: integer
+    minimum: 1
+    default: 180
+  min_asv_len:
+    type: integer
+    minimum: 1
+    default: 300
+  min_retained:
+    type: number
+    minimum: 0.0
+    default: 0.3
+  min_read_pairs:
+    type: integer
+    minimum: 1
+    default: 200
+  max_perc_adapter:
+    type: integer
+    minimum: 1
+    maximum: 100
+    default: 5
+
+required:
+  - pool
+  - manifest
+  - primer_F
+  - primer_R

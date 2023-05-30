@@ -1,0 +1,17 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+
+description: vdb_16S denoise config schema
+
+type: object
+
+properties:
+  # inputs
+  pool:
+    type: string
+  manifest:
+    type: string
+
+required:
+  - pool
+  - manifest

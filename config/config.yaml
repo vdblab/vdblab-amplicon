@@ -1,0 +1,33 @@
+# annotation databases
+adapter_ref: /data/brinkvd/resources/adapters_combined_256_unique.fasta
+human_ref: /data/brinkvd/resources/hg38.fa.masked.gz.mmi
+mouse_ref: /data/brinkvd/resources/GCA_000001635.9_GRCm39_genomic.fna.gz.mmi
+anno_db: /data/brinkvd/resources/bacteria_and_archea.16SrRNA.id_and_taxonomy_v2.txt
+
+multiqc_reports:
+  - demux/fastqc_reports
+  - preprocess/fastqc_reports
+  - preprocess/multiqc_reports
+  - denoise/multiqc_reports
+  - denoise/plots
+  - annotate/multiqc_reports
+
+trunclen_R1: 200
+trunclen_R2: 180
+min_asv_len: 300
+nshards: 4
+
+# on LSF the memory is given per core.  If run on another cluster that wants memory per slot/task/job, disable this
+memory_per_core: true
+
+# this requires ~18GB memory, so this is disableable for testing
+skip_contam_search: false
+
+# Dont have DB access?
+skip_db_upload: false
+
+# Autoexcluder parameters
+min_retained: 0.3
+min_read_pairs: 200
+max_perc_adapter: 5
+skip_anno: false
