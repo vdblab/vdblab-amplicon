@@ -9,7 +9,6 @@ min_version("6.0")
 
 validate(config, os.path.join(workflow.basedir, "../config/annotate.schema.yaml"))
 
-config["pipeline_version"] = get_pipeline_version()
 
 LOG_PREFIX = "logs/annotate"
 

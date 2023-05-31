@@ -19,7 +19,6 @@ wildcard_constraints:
 
 min_version("6.0")
 
-config["pipeline_version"] = get_pipeline_version()
 
 validate(config, os.path.join(workflow.current_basedir, "../../config/demux.schema.yaml"))
 

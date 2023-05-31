@@ -8,14 +8,6 @@ import yaml
 from snakemake.utils import min_version, validate
 
 
-def get_pipeline_version():
-    return (
-        subprocess.check_output(["git", "describe", "--always"], cwd=workflow.basedir)
-        .decode("utf-8")
-        .strip()
-    )
-
-
 def make_shard_names(nshards):
     return [f"{x:03}" for x in range(1, config["nshards"] + 1)]
 

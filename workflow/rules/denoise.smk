@@ -21,8 +21,6 @@ min_version("6.0")
 
 validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
 
-config["pipeline_version"] = get_pipeline_version()
-
 
 MANIFEST = load_manifest(
     config["manifest"],
