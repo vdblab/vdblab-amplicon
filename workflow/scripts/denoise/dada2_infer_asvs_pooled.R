@@ -11,7 +11,7 @@ err <- readRDS(snakemake@input$error)
 # we could get dereplication is done on the fly, but keeping it allows us to have the QC info
 sprintf("%s - derepFastq", Sys.time())
 
-manifest <- read.csv(, sep = "\t", stringsAsFactors = FALSE)
+manifest <- read.csv(snakemake@input$manifest, sep = "\t", stringsAsFactors = FALSE)
 fq_col <- paste0("R", snakemake@wildcards$dir)
 
 derep <- derepFastq(manifest[[fq_col]], verbose = TRUE)

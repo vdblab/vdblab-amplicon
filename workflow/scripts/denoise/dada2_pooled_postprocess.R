@@ -4,8 +4,6 @@ sink(logo, type = "output")
 sink(loge, type = "message")
 
 library(dada2)
-pooling <- snakemake@params$pooling
-err <- readRDS(snakemake@input$error)
 
 derep_R1 <- readRDS(snakemake@input$derep_R1)
 derep_R2 <- readRDS(snakemake@input$derep_R2)
@@ -18,7 +16,7 @@ ff <- 0
 merged <- mergePairs(dada_R1, derep_R1, dada_R2, derep_R2, verbose = TRUE)
 saveRDS(merged, snakemake@output$merged)
 
-seqtab <- makeSequenceTable(setNames(list(merged), snakemake@wildcards$sample))
+seqtab <- makeSequenceTable(merged)
 saveRDS(seqtab, snakemake@output$seqtab)
 
 
@@ -44,13 +42,12 @@ write_asv_fasta <- function(asv_sequences, fasta_path) {
 
 sprintf("%s - removeBimeraDenovo", Sys.time())
 seqtab_nobimera <- removeBimeraDenovo(seqtab, method = "consensus", multithread = TRUE)
-
 sprintf("%s - writing sequence table", Sys.time())
-seqtab_nobimera |>
+seqtab_nobimera_clean <- seqtab_nobimera |>
   as_tibble() |>
   mutate(sample_id = rownames(seqtab_nobimera)) |>
-  relocate(sample_id) |>
-  write_tsv(snakemake@output$seqtab)
+  relocate(sample_id)
+write_tsv(seqtab_nobimera_clean, snakemake@output$seqtab)
 
 asv_sequences <- colnames(seqtab_nobimera)
 
@@ -72,37 +69,27 @@ write.csv(seqtabfinal_counts, snakemake@output$counts, row.names = FALSE)
 
 
 
-sample_metrics <- snakemake@input$sample_metrics |>
-  purrr::map(
-    ~ readr::read_tsv(
-      .,
-      col_types = readr::cols(
-        .default = "i",
-        sample_id = "c"
-      )
-    )
-  ) |>
-  dplyr::bind_rows()
-
-no_chim_counts <- readr::read_tsv(snakemake@input$seq_counts) |>
-  tidyr::pivot_longer(-sample_id, names_to = "asv", values_to = "count") |>
-  dplyr::group_by(sample_id) |>
-  dplyr::summarise(no_chimeras = sum(count), .groups = "drop")
-
-sample_metrics |>
-  dplyr::left_join(no_chim_counts, by = "sample_id") |>
-  readr::write_tsv(snakemake@output$metrics)
-
 
 
 getN <- function(x) sum(getUniques(x))
 
 metrics <- data.frame(
-  sample_id = snakemake@wildcards$sample,
-  derepped_R1 = getN(derep_R1),
-  derepped_R2 = getN(derep_R2),
-  denoised_R1 = getN(dada_R1),
-  denoised_R2 = getN(dada_R2),
-  merged = getN(merged)
+  derepped_R1 = sapply(derep_R1, getN),
+  derepped_R2 = sapply(derep_R2, getN),
+  denoised_R1 = sapply(dada_R1, getN),
+  denoised_R2 = sapply(dada_R2, getN),
+  merged = sapply(merged, getN),
+  sample_id = names(dada_R2)
 )
+rownames(metrics) <- names(derep_R1)
 write_tsv(metrics, snakemake@output$metrics)
+no_chim_counts <- seqtab_nobimera_clean |>
+  tidyr::pivot_longer(-sample_id, names_to = "asv", values_to = "count") |>
+  dplyr::group_by(sample_id) |>
+  dplyr::summarise(no_chimeras = sum(count), .groups = "drop")
+
+print(metrics)
+print(no_chim_counts)
+metrics |>
+  dplyr::left_join(no_chim_counts, by = "sample_id") |>
+  readr::write_tsv(snakemake@output$metrics)

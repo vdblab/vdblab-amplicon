@@ -46,6 +46,7 @@ rule all:
         f"demux/{config['pool']}_missing_or_incomplete.tsv",
         f"demux/fastqc_reports/{config['pool']}_R1_fastqc.html",
         f"demux/fastqc_reports/{config['pool']}_R2_fastqc.html",
+        expand(f"demux/fastq/{sample}_R{dir}.fastq.gz", sample=SAMPLES, dir=[1,2]),
 
 
 rule concat_fastqs:

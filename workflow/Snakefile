@@ -61,7 +61,7 @@ use rule * from preprocess as preprocess_*
 
 
 # note that the default pipeline
-if config["pooling"] == "full" or True:
+if config["pooling"] == "non" :
 
     module denoise:
         snakefile:
@@ -69,12 +69,11 @@ if config["pooling"] == "full" or True:
         config:
             config
 
-
 else:
 
-    module denoisse:
+    module denoise:
         snakefile:
-            "rules/denoise_unpooled.smk"
+            "rules/denoise_pooled.smk"
         config:
             config
 

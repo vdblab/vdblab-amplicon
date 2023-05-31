@@ -73,38 +73,41 @@ rule dada2_learn_errors:
         "../scripts/denoise/dada2_learn_errors.R"
 
 
-rule dada2_infer_asvs:
+rule dada2_infer_pooled_asvs:
     input:
-        fastq=lambda wildcards: MANIFEST.loc[wildcards.sample, f"R{wildcards.dir}"],
+        manifest=config["manifest"],
         error=f"denoise/{config['pool']}_error_R{{dir}}.rds",
     output:
-        derep=temp("denoise/dada2/{sample}_derep_R{dir}.rds"),
-        dada=temp("denoise/dada2/{sample}_dada_R{dir}.rds"),
+        derep=f"denoise/dada2/{config['pool']}_derep_R{{dir}}.rds",
+        dada=f"denoise/dada2/{config['pool']}_dada_R{{dir}}.rds",
     log:
-        e=f"{LOG_PREFIX}/dada2_infer_asvs_{{sample}}_R{{dir}}.e",
-        o=f"{LOG_PREFIX}/dada2_infer_asvs_{{sample}}_R{{dir}}.o",
+        e=f"{LOG_PREFIX}/dada2_infer_asvs_{config['pool']}_R{{dir}}.e",
+        o=f"{LOG_PREFIX}/dada2_infer_asvs_{config['pool']}_R{{dir}}.o",
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
+    params:
+        pooling = "pseudo"
     threads: 8
     resources:
         mem_mb=8 * 1024,
     script:
         "../scripts/denoise/dada2_infer_asvs_pooled.R"
 
-rule dada2_postprocess:count_asvs:
+rule dada2_postprocess:
     input:
-        derep_R1="denoise/dada2/{sample}_derep_R1.rds",
-        derep_R2="denoise/dada2/{sample}_derep_R2.rds",
-        dada_R1="denoise/dada2/{sample}_dada_R1.rds",
-        dada_R2="denoise/dada2/{sample}_dada_R2.rds",
+        derep_R1=f"denoise/dada2/{config['pool']}_derep_R1.rds",
+        derep_R2=f"denoise/dada2/{config['pool']}_derep_R2.rds",
+        dada_R1=f"denoise/dada2/{config['pool']}_dada_R1.rds",
+        dada_R2=f"denoise/dada2/{config['pool']}_dada_R2.rds",
     output:
         seqtab=f"denoise/{config['pool']}_asv_seqtab.tsv",
         counts=f"denoise/{config['pool']}_asv_counts.tsv",
         fasta=f"denoise/{config['pool']}_asvs.fasta",
-        metrics=temp("denoise/dada2/{sample}_dada2_metrics.tsv"),
+        metrics=f"denoise/{config['pool']}_denoise_metrics.tsv",
+        merged="denoise/dada2/{config['pool']}_merged.rds",
     log:
-        e=f"{LOG_PREFIX}/dada2_postprocess_{config['pool']}}.e",
-        o=f"{LOG_PREFIX}/dada2_postprocess_{config['pool']}}.o",
+        e=f"{LOG_PREFIX}/dada2_postprocess_{config['pool']}.e",
+        o=f"{LOG_PREFIX}/dada2_postprocess_{config['pool']}.o",
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     threads: 1
