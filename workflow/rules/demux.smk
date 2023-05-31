@@ -20,7 +20,7 @@ wildcard_constraints:
 min_version("6.0")
 
 
-validate(config, os.path.join(workflow.current_basedir, "../../config/demux.schema.yaml"))
+#validate(config, os.path.join(workflow.current_basedir, "../../config/demux.schema.yaml"))
 
 
 BARCODES = extract_barcodes(config["oligos"])

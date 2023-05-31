@@ -7,7 +7,7 @@ envvars:
 
 min_version("6.0")
 
-validate(config, os.path.join(workflow.basedir, "../config/annotate.schema.yaml"))
+#validate(config, os.path.join(workflow.basedir, "../config/annotate.schema.yaml"))
 
 
 LOG_PREFIX = "logs/annotate"

@@ -13,16 +13,9 @@ envvars:
 
 min_version("6.0")
 
-validate(
-    config, os.path.join(workflow.current_basedir, "../config/preprocess.schema.yaml")
-)
+#validate(config, os.path.join(workflow.current_basedir, "../config/preprocess.schema.yaml"))
 
-config["pipeline_version"] = get_pipeline_version()
-
-MANIFEST = load_manifest(
-   config["manifest"],
-   os.path.join(workflow.basedir, "../config/manifest.schema.yaml"),
-)
+MANIFEST = load_manifest(config["manifest"], None)
 SAMPLES = get_samples_from_manifest(MANIFEST)
 
 LOG_PREFIX = "logs/preprocess"

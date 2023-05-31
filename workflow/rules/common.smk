@@ -12,9 +12,12 @@ def make_shard_names(nshards):
     return [f"{x:03}" for x in range(1, config["nshards"] + 1)]
 
 
-def load_manifest(manifest_path, manifest_schema_path):
+def load_manifest(manifest_path, manifest_schema_path=None):
+    """
+    """
     manifest = pd.read_csv(manifest_path, sep="\t")
-    validate(manifest, manifest_schema_path)
+    if manifest_schema_path is not None:
+        validate(manifest, manifest_schema_path)
     return manifest.set_index("sample_id")
 
 

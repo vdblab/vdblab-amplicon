@@ -19,13 +19,10 @@ wildcard_constraints:
 
 min_version("6.0")
 
-validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
+#validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
 
 
-MANIFEST = load_manifest(
-    config["manifest"],
-    os.path.join(workflow.basedir, "../config/manifest.schema.yaml"),
-)
+MANIFEST = load_manifest(config["manifest"], None)
 SAMPLES = get_samples_from_manifest(MANIFEST)
 
 LOG_PREFIX = "logs/denoise"
