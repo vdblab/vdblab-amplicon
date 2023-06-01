@@ -45,7 +45,6 @@ module demux:
 
 use rule * from demux as demux_*
 
-config["pooling"] = "partial"
 config["primer_F"], config["primer_R"] = extract_primers(config)
 
 # db_files = get_files_from_db_dir(config)
