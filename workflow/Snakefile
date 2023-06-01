@@ -65,7 +65,7 @@ use rule * from preprocess as preprocess_*
 
 
 # note that the default pipeline
-if config["pooling"] == "non" :
+if not config["pooling"]:
 
     module denoise:
         snakefile:
