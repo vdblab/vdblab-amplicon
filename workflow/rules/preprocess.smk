@@ -116,8 +116,8 @@ rule quality_trim:
     output:
         R1="preprocess/trimmed/{sample}_trimmed_R1.fastq.gz",
         R2="preprocess/trimmed/{sample}_trimmed_R2.fastq.gz",
-        figpath="preprocess/plots/{sample}_quality_profile.png",
-        stats=temp("preprocess/dada2/{sample}_quality_trimming_stats.txt"),
+        figpath="preprocess/plots/{sample}_quality_profile_mqc.png",
+        stats=temp("preprocess/dada2/{sample}_quality_trimming_stats_mqc.txt"),
     params:
         trunclen_R1=config["trunclen_R1"],
         trunclen_R2=config["trunclen_R2"],
