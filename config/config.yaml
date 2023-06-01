@@ -1,8 +1,8 @@
 # annotation databases
-adapter_ref: /data/brinkvd/resources/adapters_combined_256_unique.fasta
-human_ref: /data/brinkvd/resources/hg38.fa.masked.gz.mmi
-mouse_ref: /data/brinkvd/resources/GCA_000001635.9_GRCm39_genomic.fna.gz.mmi
-anno_db: /data/brinkvd/resources/bacteria_and_archea.16SrRNA.id_and_taxonomy_v2.txt
+adapter_ref: /data/brinkvd/resources/references/synthetic/stephenturner-adapters/93b5f91/adapters_combined_256_unique.fasta
+human_ref: /data/brinkvd/resources/indexes/human/CHM13/v2.0/minimap2/chm13v2.0.fa.gz.mmi
+mouse_ref: /data/brinkvd/resources/indexes/mouse/GRCm39/GCA_000001635.9/minimap2/GCA_000001635.9_GRCm39_genomic.fna.gz.mmi
+anno_db: /data/brinkvd/resources/dbs/ncbi16S/2022/16S_ribosomal_RNA_id_and_taxonomy.txt
 
 multiqc_reports:
   - demux/fastqc_reports

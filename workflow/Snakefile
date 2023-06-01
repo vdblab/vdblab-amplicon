@@ -29,6 +29,7 @@ localrules:
 
 if config["stage"] != "annotate":
     config["asv_fasta"] = f"denoise/{config['pool']}_asvs.fasta"
+
 if config["stage"] not in ["demux", "annotate"]:
     MANIFEST = load_manifest(
         config["manifest"],

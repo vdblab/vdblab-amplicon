@@ -87,6 +87,24 @@ case $mode in
 	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
+  annotate )
+      snakemake \
+	  $commonargs \
+	  --singularity-args "-B ${PWD},/data/brinkvd/,/lila/$PWD/,/lila/data/brinkvd/,/scratch/" \
+	  --directory tmpannotate/ \
+	  --config \
+	  stage=annotate \
+	  asv_fasta="${PWD}/tmpdenoise/denoise/pool1_asvs.fasta" \
+	  sample=473  \
+	  pool="pool1" \
+	  pooling="pseudo" \
+	  manifest=$PWD/tmppre/preprocess/pool1_manifest.tsv \
+	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
+	  R1=$R1 \
+	  R2=$R2 \
+	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
+	  nshards=2
+      ;;
 
   *)
     echo -e "unknown mode; please chose from all, preprocess, biobakery, bin, kraken2, assembly, annotate, rgi. Exiting\n"
