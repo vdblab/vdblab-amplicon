@@ -26,6 +26,7 @@ rule all:
     input:
         f"annotate/{config['pool']}_asv_annotated.txt",
         f"annotate/{config['pool']}_asv_blast_out.tsv",
+        f"annotate/{config['pool']}_asv_microclass_out.tsv",
         f"annotate/multiqc_reports/{config['pool']}_host_contamination_mqc.out",
 
 
@@ -116,6 +117,24 @@ rule legacy_blast_annotate:
             -outfmt \"6 qseqid staxids saccver stitle qlen length nident pident bitscore evalue score\" \
             -out {output.blast} \
             >> {log.o} 2> {log.e}
+        """
+
+rule microclass_annotate:
+    input:
+        asv_fasta=config["asv_fasta"],
+    output:
+        anno=f"annotate/{config['pool']}_asv_microclass_out.tsv",
+    resources:
+        mem_mb=4 * 1024,
+    threads: 8
+    container:
+        "docker://ghcr.io/vdblab/microclass:0.0.0"
+    log:
+        e=f"{LOG_PREFIX}/microclass_annotate.e",
+        o=f"{LOG_PREFIX}/microclass_annotate.o",
+    shell:
+        """
+        R -e 'library(microclass); rawseqs <- readLines("{input.asv_fasta}"); seqs <- rawseqs[!grepl("^>", rawseqs)] ; headers = gsub("^>", "",  rawseqs[grepl("^>", rawseqs)]); results<-taxMachine(sequence=seqs, model.on.disk="tax.model"); rownames(results) <- headers; print("writing out results") ; write.table(results, "{output.anno}", sep="\\t")'
         """
 
 
