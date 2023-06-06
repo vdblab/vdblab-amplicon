@@ -14,7 +14,7 @@ log <- file(snakemake@log[[1]], open = "wt")
 sink(log, type = "output")
 sink(log, type = "message")
 
-trim_stats <- read.csv(snakemake@input[["trim_report"]], sep = "\t", skip = 3)
+trim_stats <- read.csv(snakemake@input[["trim_report"]], sep = "\t", comment.char = "#")
 adapter_stats <- read.csv(snakemake@input[["adapter_contam_report"]], sep = "\t", skip = 3)
 
 samples_high_junk_proportion <- trim_stats[trim_stats$postfilter / trim_stats$prefilter < snakemake@params[["min_retained"]], "sample"]

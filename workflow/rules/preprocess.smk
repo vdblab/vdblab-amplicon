@@ -235,7 +235,7 @@ rule make_dada2_trimming_multiqc_report:
         echo -e "# id: 'trimming'" > {output.report}
         echo -e "# plot_type: 'table'" >> {output.report}
         echo -e "# section_name: 'DADA2 Quality Trimming'" >> {output.report}
-        echo -e "sample\tprefilter\tpostfilter" >> {output.report}
+        echo -e "sample\tprefilter\tpostfilter\tpct_loss" >> {output.report}
         cat {input.trim_reports} | grep -v "reads.in" >> {output.report} 2>> {log.e}
         """
 

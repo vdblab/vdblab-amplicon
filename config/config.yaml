@@ -1,24 +1,14 @@
 # annotation databases
+# see https://github.com/vdblab/resources
 adapter_ref: /data/brinkvd/resources/references/synthetic/stephenturner-adapters/93b5f91/adapters_combined_256_unique.fasta
 human_ref: /data/brinkvd/resources/indexes/human/CHM13/v2.0/minimap2/chm13v2.0.fa.gz.mmi
 mouse_ref: /data/brinkvd/resources/indexes/mouse/GRCm39/GCA_000001635.9/minimap2/GCA_000001635.9_GRCm39_genomic.fna.gz.mmi
 anno_db: /data/brinkvd/resources/dbs/ncbi16S/2022/16S_ribosomal_RNA_id_and_taxonomy.txt
 
-multiqc_reports:
-  - demux/fastqc_reports
-  - preprocess/fastqc_reports
-  - preprocess/multiqc_reports
-  - denoise/multiqc_reports
-  - denoise/plots
-  - annotate/multiqc_reports
-
 trunclen_R1: 200
 trunclen_R2: 180
 min_asv_len: 300
 nshards: 4
-
-# on LSF the memory is given per core.  If run on another cluster that wants memory per slot/task/job, disable this
-memory_per_core: true
 
 # this requires ~18GB memory, so this is disableable for testing
 skip_contam_search: false
