@@ -61,9 +61,9 @@ rule dada2_learn_errors:
         o=f"{LOG_PREFIX}/dada2_learn_errors_R{{dir}}.o",
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
-    threads: 8
+    threads: 16
     resources:
-        mem_mb=8 * 1024,
+        mem_mb=32 * 1024,
     script:
         "../scripts/denoise/dada2_learn_errors.R"
 
@@ -80,9 +80,9 @@ rule dada2_infer_asvs:
         o=f"{LOG_PREFIX}/dada2_infer_asvs_{{sample}}_R{{dir}}.o",
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
-    threads: 8
+    threads: 16
     resources:
-        mem_mb=8 * 1024,
+        mem_mb=32 * 1024,
     script:
         "../scripts/denoise/dada2_infer_asvs.R"
 
@@ -119,9 +119,9 @@ rule dada2_remove_chimeras:
         o=f"{LOG_PREFIX}/dada2_remove_chimeras.o",
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
-    threads: 1
+    threads: 16
     resources:
-        mem_mb=8 * 1024,
+        mem_mb=32 * 1024,
     script:
         "../scripts/denoise/dada2_remove_chimeras.R"
 
