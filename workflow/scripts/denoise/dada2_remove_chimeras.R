@@ -43,9 +43,12 @@ sprintf("%s - reading sequence tables", Sys.time())
 seqtab <- load_sequence_counts(snakemake@input$seqtab)
 
 if (is.null(seqtab)) stop("No valid sequence tables from this run! Exiting")
+sprintf("%s      sequence table samples: %s" , Sys.time(), dim(seqtab)[1])
+sprintf("%s      sequence table ASVs: %s" , Sys.time(), dim(seqtab)[2])
 
-sprintf("%s - removeBimeraDenovo", Sys.time())
+sprintf("%s - running removeBimeraDenovo", Sys.time())
 seqtab <- removeBimeraDenovo(seqtab, method = "consensus", multithread = TRUE)
+sprintf("%s      sequence table without bimera ASVs: %s" , Sys.time(), dim(seqtab)[2])
 
 sprintf("%s - writing sequence table", Sys.time())
 seqtab |>

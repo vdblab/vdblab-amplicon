@@ -54,7 +54,7 @@ case $mode in
 	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
-  denoise )
+  denoise_pooled )
       snakemake \
 	  $commonargs \
 	  --singularity-args "-B ${PWD},/data/brinkvd/,/lila/$PWD/,/lila/data/brinkvd/,/scratch/" \
@@ -70,7 +70,7 @@ case $mode in
 	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
-  pool_denoise )
+  denoise_pseudo )
       snakemake \
 	  $commonargs \
 	  --singularity-args "-B ${PWD},/data/brinkvd/,/lila/$PWD/,/lila/data/brinkvd/,/scratch/" \
@@ -80,6 +80,23 @@ case $mode in
 	  sample=473  \
 	  pool="pool1" \
 	  pooling="pseudo" \
+	  manifest=$PWD/tmppre/preprocess/pool1_manifest.tsv \
+	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
+	  R1=$R1 \
+	  R2=$R2 \
+	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
+	  nshards=2
+      ;;
+  denoise )
+      snakemake \
+	  $commonargs \
+	  --singularity-args "-B ${PWD},/data/brinkvd/,/lila/$PWD/,/lila/data/brinkvd/,/scratch/" \
+	  --directory tmpdenoise_unpooled/ \
+	  --config \
+	  stage=denoise \
+	  sample=473  \
+	  pool="pool1" \
+	  pooling=False \
 	  manifest=$PWD/tmppre/preprocess/pool1_manifest.tsv \
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \
@@ -107,6 +124,6 @@ case $mode in
       ;;
 
   *)
-    echo -e "unknown mode; please chose from all, preprocess, biobakery, bin, kraken2, assembly, annotate, rgi. Exiting\n"
+    echo -e "unknown mode; please chose from annotate, denoise, denoise_pseudo, demux, preprocess. Exiting\n"
     ;;
 esac
