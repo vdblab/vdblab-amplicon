@@ -47,7 +47,7 @@ sprintf("%s      sequence table samples: %s" , Sys.time(), dim(seqtab)[1])
 sprintf("%s      sequence table ASVs: %s" , Sys.time(), dim(seqtab)[2])
 
 sprintf("%s - running removeBimeraDenovo", Sys.time())
-seqtab <- removeBimeraDenovo(seqtab, method = "consensus", multithread = TRUE)
+seqtab <- removeBimeraDenovo(seqtab, method = "consensus", multithread = snakemake@threads)
 sprintf("%s      sequence table without bimera ASVs: %s" , Sys.time(), dim(seqtab)[2])
 
 sprintf("%s - writing sequence table", Sys.time())

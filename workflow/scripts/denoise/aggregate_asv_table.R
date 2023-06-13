@@ -52,7 +52,7 @@ if (length(seqtab_obs) > 1){
     stop("No valid sequence tables from this run! Exiting")
 }
 
-seqtab <- removeBimeraDenovo(st.all, method="consensus", multithread=TRUE)
+seqtab <- removeBimeraDenovo(st.all, method="consensus", multithread=snakemake@threads)
 write.csv(seqtab, snakemake@output[["seqtab"]])
 
 
