@@ -1,4 +1,14 @@
 # The vdB 16S Pipeline
+
+## Prerequisites
+
+- [Snakemake](https://snakemake.readthedocs.io/en/stable/)
+- [Apptainer/Singularity](https://apptainer.org/): while in many cases we do provide conda envs the only method of execution we support is via containers.
+- (optional) [A Snakemake Profile](https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles): this coordinates the execution of jobs on whatever hardware you are using.
+
+> Please set your snakemake profile with `export SNAKEMAKE_PROFILE=/path/to/your/profile`.  You can alternatively use the snakemake cli --profile arg
+
+## Description
 This is the workflow used for routine analysis of 16S microbiome sequencing.  Since "routine" is arguably a misnomer, it is a modularized worklfow designed to executed in a few ways.  It consists of 4 main stages:
 
 1. demux:
@@ -23,15 +33,14 @@ This is the workflow used for routine analysis of 16S microbiome sequencing.  Si
 
 ## Usage
 > **Note**
-> All paths here are written for running the commands from the root of this repository.
+> All paths here are written for running the commands from the root of this repository.  Where you see relative paths, they are relative to the --directory path.
 
 ### Demultiplexing
 ``` sh
 snakemake \
-  --profile $PWD/msk-lsf/ \
   --directory work \
-  --snakefile vdb_16S/rules/demux.smk \
   --config \
+	stage=demux \
     pool=test \
     nshards=2 \
     R1=["$PWD/.test/amplicon/test_input/test_R1_001.fastq.gz"] \
@@ -42,10 +51,9 @@ snakemake \
 ### Preprocessing
 ``` sh
 snakemake \
-  --profile $PWD/msk-lsf/ \
   --directory work \
-  --snakefile vdb_16S/rules/preprocess.smk \
   --config \
+    stage=preprocess \
     pool=test \
     manifest=demux/test_manifest.tsv \
     primer_F=AYTGGGYDTAAAGNG \
@@ -55,9 +63,7 @@ snakemake \
 ### Denoising with DADA2
 ``` sh
 snakemake \
-  --profile $PWD/msk-lsf/ \
   --directory work \
-  --snakefile vdb_16S/rules/denoise.smk \
   --config \
     pool=test \
     manifest=preprocess/test_manifest.tsv
@@ -66,11 +72,10 @@ snakemake \
 ### Annotating ASVs with BLAST
 ``` sh
 snakemake \
-  --profile $PWD/msk-lsf/ \
   --directory work \
-  --snakefile vdb_16S/rules/annotate.smk \
   --config \
     pool=test \
+	stage=annotate \
     asv_fasta=denoise/test_asvs.fasta \
     adapter_ref=/data/brinkvd/resources/references/synthetic/stephenturner-adapters/93b5f91/adapters_combined_256_unique.fasta \
     human_ref=/data/brinkvd/resources/indexes/human/hg38/hg38/minimap2/hg38.fa.masked.gz.mmi \
@@ -80,16 +85,11 @@ snakemake \
 
 
 ### Configuration
-Run with the `--profile $PWD/msk-lsf/` to use the job parameters listed in `msk-lsf/config.yaml`.  This includes setting:
 
-* singularity cache dir
-* default submission parameters
-* *etc.*
+>we are no longer doing config schema validation becuase we rely on snakedeploy for typical usage.  Snakedeploy only fetches files called config.yaml, not the whole directory of configs and schemas.
+
 
 Run-specific parameters are set using the `--config`.
-You can look at the config schemas in `vdb_16S/schemas/` to see the configurable parameters and which ones are required.
-
-Some useful defaults configuration parameters are in `vdb_16s/config/runconfig.yaml`.
 
 
 <!-- ## REDCap Integration -->

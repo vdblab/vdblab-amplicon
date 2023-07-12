@@ -22,3 +22,4 @@ min_read_pairs: 200
 max_perc_adapter: 5
 skip_anno: false
 pooling: true
+stage: preprocess
