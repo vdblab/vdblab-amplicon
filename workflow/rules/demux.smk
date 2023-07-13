@@ -26,7 +26,7 @@ min_version("6.0")
 BARCODES = extract_barcodes(config["oligos"])
 SAMPLES = BARCODES["sample_id"].tolist()
 SHARDS = make_shard_names(config["nshards"])
-
+NLIBS = [i for i, x in enumerate(config["R1"])]
 LOG_PREFIX = "logs/demux"
 
 
@@ -43,8 +43,8 @@ rule all:
     input:
         f"demux/{config['pool']}_manifest.tsv",
         f"demux/{config['pool']}_missing_or_incomplete.tsv",
-        f"demux/fastqc_reports/{config['pool']}_R1_fastqc.html",
-        f"demux/fastqc_reports/{config['pool']}_R2_fastqc.html",
+        expand(f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R1_fastqc.html", lib=NLIBS),
+        expand(f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R2_fastqc.html", lib=NLIBS),
         expand("demux/fastq/{sample}_R{dir}.fastq.gz", sample=SAMPLES, dir=[1,2]),
 
 
@@ -74,16 +74,22 @@ rule concat_fastqs:
 
 
 rule generate_pool_fastqc_report:
+    """ we generate per fastq fastqc reports.
+    the symlinking is to ensure consitent names
+    """
     input:
-        R1=f"{config['pool']}_R1.fastq.gz",
-        R2=f"{config['pool']}_R2.fastq.gz",
+        R1=lambda wildcards: config["R1"][int(wildcards.lib)],
+        R2=lambda wildcards: config["R2"][int(wildcards.lib)],
     output:
-        report_R1=f"demux/fastqc_reports/{config['pool']}_R1_fastqc.html",
-        report_R2=f"demux/fastqc_reports/{config['pool']}_R2_fastqc.html",
-        zip_R1=f"demux/fastqc_reports/{config['pool']}_R1_fastqc.zip",
-        zip_R2=f"demux/fastqc_reports/{config['pool']}_R2_fastqc.zip",
+        rep_R1=f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R1_fastqc.html",
+        rep_R2=f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R2_fastqc.html",
+        zip_R1=f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R1_fastqc.zip",
+        zip_R2=f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R2_fastqc.zip",
+        R1=temp(f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R1.fq.gz"),
+        R2=temp(f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R2.fq.gz"),
     params:
         outdir=lambda wildcards, output: os.path.dirname(output[0]),
+        base=lambda wildcards, output: os.path.basename(output[0]).replace("1_fastqc.html", ""),
     container:
         "docker://staphb/fastqc:0.11.9"
     # fastqc uses one thread per input file, so increasing this won't help
@@ -91,16 +97,19 @@ rule generate_pool_fastqc_report:
     resources:
         mem_mb=4 * 1024,
     log:
-        o=f"{LOG_PREFIX}/pool_fastqc.o",
-        e=f"{LOG_PREFIX}/pool_fastqc.e",
+        o=f"{LOG_PREFIX}/pool_fastqc_lib{{lib}}.o",
+        e=f"{LOG_PREFIX}/pool_fastqc_lib{{lib}}.e",
     shell:
         """
+        ln -s {input.R1} {output.R1}
+        ln -s {input.R2} {output.R2}
         fastqc \
             --outdir {params.outdir} \
             --threads {threads} \
             --noextract \
-            {input.R1} {input.R2} \
+            {output.R1} {output.R2} \
             2> {log.e} > {log.o}
+        ls
         """
 
 
