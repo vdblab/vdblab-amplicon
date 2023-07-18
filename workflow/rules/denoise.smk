@@ -121,6 +121,7 @@ rule dada2_remove_chimeras:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     threads: 16
     resources:
+        runtime=4 * 60,
         mem_mb=32 * 1024,
     script:
         "../scripts/denoise/dada2_remove_chimeras.R"
