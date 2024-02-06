@@ -100,4 +100,25 @@ def sample_is_paired(wildcards):
     return MANIFEST.loc[wildcards.sample, "R2"] != "" and not math.isnan(MANIFEST.loc[wildcards.sample, "R2"])
 
 def is_paired():
-    return config["paired"] == 1
+    if config["lib_layout"] not in ["paired", "single"]:
+        raise ValueError("lib_layout must be specified as either paired or single")
+    return config["lib_layout"] == "paired"
+
+def get_inputs_for_asv_counting(wildcards):
+    """ Conditionally return the paths to dereplicated and dada2 objects
+    depending on whether library is paired and whether its being
+    run pooled or sample-by-sample
+    """
+    inputs = [
+        "denoise/dada2/{sample}_derep_R1.rds",
+        "denoise/dada2/{sample}_dada_R1.rds"
+    ]
+    if is_paired():
+        inputs.extend([
+            "denoise/dada2/{sample}_derep_R2.rds",
+        "denoise/dada2/{sample}_dada_R2.rds"
+        ])
+    if config["pooling"] != "none":
+        for i,x in enumerate(inputs):
+            inputs[i] = x.format(sample=config["pool"])
+    return inputs

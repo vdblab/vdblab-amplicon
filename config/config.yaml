@@ -5,7 +5,7 @@ human_ref: /data/brinkvd/resources/indexes/human/CHM13/v2.0/minimap2/chm13v2.0.f
 mouse_ref: /data/brinkvd/resources/indexes/mouse/GRCm39/GCA_000001635.9/minimap2/GCA_000001635.9_GRCm39_genomic.fna.gz.mmi
 anno_db: /data/brinkvd/resources/dbs/ncbi16S/2022/16S_ribosomal_RNA_id_and_taxonomy.txt
 
-paired: 1
+lib_layout: "paired"
 preprocess_min_read_length: 150
 trunclen_R1: 200
 trunclen_R2: 180
@@ -23,5 +23,6 @@ min_retained: 0.3
 min_read_pairs: 200
 max_perc_adapter: 5
 skip_anno: false
-pooling: true
+pooling: "none"
+removeprimers: true
 stage: preprocess

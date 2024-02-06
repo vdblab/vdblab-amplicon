@@ -72,7 +72,7 @@ case $mode in
 	  R1=$R1 \
 	  primer_F=AYTGGGYDTAAAGNG \
 	  primer_R=CCGTCAATTYHTTTRAGT \
-	  paired=0 \
+	  lib_layout=single \
 	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
@@ -89,6 +89,24 @@ case $mode in
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \
 	  R2=$R2 \
+	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
+	  nshards=2
+      ;;
+  denoise_pooled_se )
+      snakemake \
+	  $commonargs \
+	  --singularity-args "-B ${PWD},/data/brinkvd/,/lila/$PWD/,/lila/data/brinkvd/,/scratch/" \
+	  --directory tmpdenoisese/ \
+	  --config \
+	  stage=denoise \
+	  sample=473  \
+	  pool="pool1" \
+	  manifest=$PWD/tmppre/preprocess/pool1_manifest.tsv \
+	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
+	  R1=$R1 \
+	  R2=$R2 \
+	  lib_layout="single" \
+	  pooling="pseudo" \
 	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
@@ -135,11 +153,11 @@ case $mode in
 	  stage=denoise \
 	  sample=473  \
 	  pool="pool1" \
-	  pooling=False \
+	  pooling="none" \
 	  manifest=$PWD/tmpprese/preprocess/pool1_manifest.tsv \
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \
-	  paired=0 \
+	  lib_layout="single" \
 	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
@@ -153,7 +171,7 @@ case $mode in
 	  asv_fasta="${PWD}/tmpdenoise/denoise/pool1_asvs.fasta" \
 	  sample=473  \
 	  pool="pool1" \
-	  pooling="pseudo" \
+	  pooling="none" \
 	  manifest=$PWD/tmppre/preprocess/pool1_manifest.tsv \
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \

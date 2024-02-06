@@ -14,7 +14,7 @@ envvars:
 
 min_version("6.0")
 
-#validate(config, os.path.join(workflow.current_basedir, "../config/preprocess.schema.yaml"))
+validate(config, os.path.join(workflow.current_basedir, "../../config/preprocess.schema.yaml"))
 
 MANIFEST = load_manifest(config["manifest"], None)
 SAMPLES = get_samples_from_manifest(MANIFEST)
@@ -41,14 +41,14 @@ def get_fastqs_to_trim(wildcards):
     """ return a list of fastqs for trimming depending on whether paired library and
     whether primers have already been removed
     """
-    if config["noprimers"] == 1:
-        return get_fastq_list(wildcards)
-    else
+    if config["removeprimers"]:
         if is_paired():
             return ["preprocess/primers-removed/{sample}_noprimers_R1.fastq.gz",
                     "preprocess/primers-removed/{sample}_noprimers_R2.fastq.gz"]
         else:
             return ["preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz"]
+    else:
+        return get_fastq_list(wildcards)
 
 
 def get_all_outputs(wildcards):

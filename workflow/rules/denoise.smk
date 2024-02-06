@@ -19,7 +19,7 @@ wildcard_constraints:
 
 min_version("6.0")
 
-#validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
+validate(config, os.path.join(workflow.basedir, "../../config/denoise.schema.yaml"))
 
 
 MANIFEST = load_manifest(config["manifest"], None)
@@ -70,9 +70,7 @@ rule dada2_learn_errors:
         "../scripts/denoise/dada2_learn_errors.R"
 
 def get_infer_asv_fastq(wildcards):
-    print(wildcards.dir)
     tmp = MANIFEST.loc[wildcards.sample, f"R{wildcards.dir}"]
-    print(tmp)
     return tmp
 
 rule dada2_infer_asvs:
@@ -82,6 +80,8 @@ rule dada2_infer_asvs:
     output:
         derep=temp("denoise/dada2/{sample}_derep_R{dir}.rds"),
         dada=temp("denoise/dada2/{sample}_dada_R{dir}.rds"),
+    params:
+        pooling = "none"
     log:
         e=f"{LOG_PREFIX}/dada2_infer_asvs_{{sample}}_R{{dir}}.e",
         o=f"{LOG_PREFIX}/dada2_infer_asvs_{{sample}}_R{{dir}}.o",
@@ -93,18 +93,6 @@ rule dada2_infer_asvs:
     script:
         "../scripts/denoise/dada2_infer_asvs.R"
 
-def get_inputs_for_asv_counting(wildcards):
-    inputs = [
-        "denoise/dada2/{sample}_derep_R1.rds",
-        "denoise/dada2/{sample}_dada_R1.rds"
-    ]
-    if is_paired():
-        print("OPARIED")
-        inputs.extend([
-            "denoise/dada2/{sample}_derep_R2.rds",
-        "denoise/dada2/{sample}_dada_R2.rds"
-        ])
-    return inputs
 
 rule dada2_count_asvs:
     input:

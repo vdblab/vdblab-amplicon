@@ -42,9 +42,17 @@ properties:
     minimum: 1
     maximum: 100
     default: 5
+  lib_layout:
+    type: string
+    pattern: "^(single|paired)$"
+  removeprimers:
+    type: boolean
+    default: true
 
 required:
   - pool
   - manifest
   - primer_F
   - primer_R
+  - lib_layout
+  - removeprimers
