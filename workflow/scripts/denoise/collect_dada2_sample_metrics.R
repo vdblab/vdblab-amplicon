@@ -9,7 +9,7 @@ getN <- function(x) sum(getUniques(x))
 
 derep_R1 <- readRDS(snakemake@input[[1]])
 
-dada_R1 <- readRDS(snakemake@input$dada_R1[[2]])
+dada_R1 <- readRDS(snakemake@input[[2]])
 
 if (snakemake@params$is_paired){
     derep_R2 <- readRDS(snakemake@input[[3]])
