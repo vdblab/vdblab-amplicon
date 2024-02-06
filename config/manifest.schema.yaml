@@ -16,4 +16,3 @@ properties:
 required:
   - sample_id
   - R1
-  - R2

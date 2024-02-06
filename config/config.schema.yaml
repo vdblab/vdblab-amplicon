@@ -21,7 +21,7 @@ properties:
     type: array
     items:
       type: string
-    minItems: 1
+#    minItems: 0
     uniqueItems: true
 
   # run parameters
@@ -34,4 +34,3 @@ required:
   - pool
   - oligos
   - R1
-  - R2

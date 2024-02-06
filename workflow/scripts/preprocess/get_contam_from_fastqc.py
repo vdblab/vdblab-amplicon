@@ -37,14 +37,17 @@ def extract_contam(fastqc_zip):
     return contam
 
 
-def main(zip_R1, zip_R2, sample_id, out_f):
-    contam_R1 = extract_contam(zip_R1)
-    contam_R2 = extract_contam(zip_R2)
+def main(inputs, sample_id, out_f):
+    zip_inputs = {"R1": inputs[0]}
+    if len(inputs) == 2:
+        zip_inputs["R2"] = inputs[1]
+    dfs = []
+    for k, v in zip_inputs.items():
+        contam = extract_contam(v)
+        contam["Read Direction"] = k
+        dfs.append(contam)
 
-    contam_R1["Read Direction"] = "R1"
-    contam_R2["Read Direction"] = "R2"
-
-    contam = pd.concat([contam_R1, contam_R2])
+    contam = pd.concat(dfs)
     contam["SampleID"] = sample_id
 
     contam.to_csv(out_f, sep="\t", index=False)
@@ -61,8 +64,7 @@ if __name__ == "__main__":
 
         try:
             main(
-                snakemake.input.zip_R1,
-                snakemake.input.zip_R2,
+                snakemake.input,
                 snakemake.wildcards.sample,
                 snakemake.output.o,
             )

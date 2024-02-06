@@ -65,7 +65,7 @@ def gz_size(fname):
         return f.seek(0, whence=2)
 
 
-def write_manifest_and_missing(sample_ids, fastq_template, manifest_path, missing_path):
+def write_manifest_and_missing(sample_ids, fastq_template, manifest_path, missing_path, paired=True):
     R1 = []
     R2 = []
     for s in sample_ids:
@@ -83,8 +83,10 @@ def write_manifest_and_missing(sample_ids, fastq_template, manifest_path, missin
 
     manifest = pd.DataFrame({"sample_id": sample_ids, "R1": R1, "R2": R2})
     manifest = manifest[["sample_id", "R1", "R2"]]
-
-    is_incomplete = (manifest["R1"] == "") | (manifest["R2"] == "")
+    if paired:
+        is_incomplete = (manifest["R1"] == "") | (manifest["R2"] == "")
+    else:
+        is_incomplete = (manifest["R1"] == "")
 
     manifest[is_incomplete].to_csv(missing_path, sep="\t", index=False)
 

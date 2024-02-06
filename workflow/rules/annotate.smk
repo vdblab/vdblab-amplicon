@@ -157,3 +157,12 @@ rule parse_blast_annotations:
         o=f"{LOG_PREFIX}/parse_blast_hits.o",
     script:
         "../scripts/annotate/parse_blast_hits.R"
+
+
+# rule make_phyloseq:
+#     input:
+#     output:
+#     threads: 1
+#     ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE),
+#                sample_data(samdf),
+#                tax_table(taxa))

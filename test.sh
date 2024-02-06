@@ -51,6 +51,28 @@ case $mode in
 	  manifest=$PWD/tmpdemux/demux/pool1_manifest.tsv \
 	  R1=$R1 \
 	  R2=$R2 \
+	  primer_F=AYTGGGYDTAAAGNG \
+	  primer_R=CCGTCAATTYHTTTRAGT \
+	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
+	  nshards=2
+      ;;
+  preprocess_se )
+      snakemake \
+	  --singularity-args "-B ${PWD},/data/brinkvd/,/lila/$PWD/,/lila/data/brinkvd/,/scratch/" \
+	  $commonargs \
+	  --directory tmpprese/   \
+#	  --snakefile workflow/rules/preprocess.smk \
+#	  --configfile config/config.yaml \
+	  --config \
+	  stage=preprocess \
+	  sample=473  \
+	  pool="pool1" \
+	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
+	  manifest=$PWD/.test/manifest_se.tsv \
+	  R1=$R1 \
+	  primer_F=AYTGGGYDTAAAGNG \
+	  primer_R=CCGTCAATTYHTTTRAGT \
+	  paired=0 \
 	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
