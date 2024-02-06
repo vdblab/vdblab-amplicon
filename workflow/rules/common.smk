@@ -92,3 +92,12 @@ def write_manifest_and_missing(sample_ids, fastq_template, manifest_path, missin
 
     manifest = manifest[~is_incomplete]
     manifest.to_csv(manifest_path, sep="\t", index=False)
+
+
+def sample_is_paired(wildcards):
+    """ not currently used, as we are expecting/enforcing pools to contain all either paired or single
+    """
+    return MANIFEST.loc[wildcards.sample, "R2"] != "" and not math.isnan(MANIFEST.loc[wildcards.sample, "R2"])
+
+def is_paired():
+    return config["paired"] == 1

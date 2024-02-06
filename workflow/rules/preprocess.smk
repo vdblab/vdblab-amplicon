@@ -30,15 +30,29 @@ onstart:
 localrules:
     all,
 
+def get_fastq_list(wildcards):
+    fqs = [MANIFEST.loc[wildcards.sample, "R1"]]
+    if is_paired():
+        fqs.append(MANIFEST.loc[wildcards.sample, "R2"])
+    return fqs
+
+
 def get_fastqs_to_trim(wildcards):
-    if config["paired"] == 1:
-        return ["preprocess/primers-removed/{sample}_noprimers_R1.fastq.gz",
-                "preprocess/primers-removed/{sample}_noprimers_R2.fastq.gz"]
-    else:
-        return ["preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz"]
+    """ return a list of fastqs for trimming depending on whether paired library and
+    whether primers have already been removed
+    """
+    if config["noprimers"] == 1:
+        return get_fastq_list(wildcards)
+    else
+        if is_paired():
+            return ["preprocess/primers-removed/{sample}_noprimers_R1.fastq.gz",
+                    "preprocess/primers-removed/{sample}_noprimers_R2.fastq.gz"]
+        else:
+            return ["preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz"]
+
 
 def get_all_outputs(wildcards):
-    if config["paired"] == 1:
+    if is_paired():
         results = [
             f"preprocess/{config['pool']}_manifest.tsv",
             f"preprocess/{config['pool']}_missing_or_incomplete.tsv",
@@ -58,22 +72,12 @@ def get_all_outputs(wildcards):
         results.extend(expand("preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz", sample=SAMPLES))
     return results
 
+
 rule all:
     input:
         get_all_outputs
 
 
-
-#def is_paired(wildcards):
-#    return MANIFEST.loc[wildcards.sample, "R2"] != "" and not math.isnan(MANIFEST.loc[wildcards.sample, "R2"])
-def is_paired(wildcards):
-    return config["paired"] == 1
-
-def get_fastq_list(wildcards):
-    fqs = [MANIFEST.loc[wildcards.sample, "R1"]]
-    if is_paired(wildcards):
-        fqs.append(MANIFEST.loc[wildcards.sample, "R2"])
-    return fqs
 
 rule remove_primers:
     """
@@ -186,9 +190,9 @@ rule output_manifest:
     input:
         expand(
             "preprocess/trimmed{se}/{sample}_trimmed_R{dir}.fastq.gz",
-            se="" if config["paired"] == 1 else "-se",
+            se="" if is_paired() else "-se",
             sample=SAMPLES,
-            dir=[1, 2] if config["paired"] == 1 else [1],
+            dir=[1, 2] if is_paired() else [1],
         ),
     output:
         manifest=f"preprocess/{config['pool']}_manifest.tsv",
@@ -204,7 +208,7 @@ rule output_manifest:
                     "{sample}_trimmed_R{dir}.fastq.gz")
                 write_manifest_and_missing(
                     SAMPLES, fastq_template, output["manifest"], output["missing"],
-                    paired=config["paired"] == 1
+                    paired=is_paired()
                 )
             except Exception as e:
                 traceback.print_exc(file=ef)
@@ -251,7 +255,7 @@ use rule sample_fastqc_report as sample_fastqc_report_se with:
 
 
 def get_fastqc_outputs(wildcards):
-    if config["paired"] == 1:
+    if is_paired():
         return ["preprocess/fastqc_reports/{sample}_noprimers_R1_fastqc.zip",
                 "preprocess/fastqc_reports/{sample}_noprimers_R2_fastqc.zip"]
     else:
@@ -278,7 +282,7 @@ rule get_contam_from_fastqc:
 
 
 def get_trim_reports(wildcards):
-    if config["paired"] == 1:
+    if is_paired():
         return expand(
             "preprocess/dada2/{sample}_quality_trimming_stats.txt", sample=SAMPLES
         )

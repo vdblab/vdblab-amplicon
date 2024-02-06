@@ -126,6 +126,23 @@ case $mode in
 	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
+  denoise_se )
+      snakemake \
+	  $commonargs \
+	  --singularity-args "-B ${PWD},/data/brinkvd/,/lila/$PWD/,/lila/data/brinkvd/,/scratch/" \
+	  --directory tmpdenoisese_unpooled/ \
+	  --config \
+	  stage=denoise \
+	  sample=473  \
+	  pool="pool1" \
+	  pooling=False \
+	  manifest=$PWD/tmpprese/preprocess/pool1_manifest.tsv \
+	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
+	  R1=$R1 \
+	  paired=0 \
+	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
+	  nshards=2
+      ;;
   annotate )
       snakemake \
 	  $commonargs \
