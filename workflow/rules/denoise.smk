@@ -21,6 +21,7 @@ min_version("6.0")
 
 validate(config, os.path.join(workflow.basedir, "../../config/denoise.schema.yaml"))
 
+assert config["pooling"] == "none", f"unpooled workflow selected but config specifies pooling={config['pooling']}"
 
 MANIFEST = load_manifest(config["manifest"], None)
 SAMPLES = get_samples_from_manifest(MANIFEST)

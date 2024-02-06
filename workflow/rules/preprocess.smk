@@ -21,7 +21,6 @@ SAMPLES = get_samples_from_manifest(MANIFEST)
 
 LOG_PREFIX = "logs/preprocess"
 
-#print(config)
 onstart:
     with open("preprocess_config_used.yaml", "w") as f:
         yaml.dump(config, f)

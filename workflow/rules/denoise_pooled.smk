@@ -96,10 +96,6 @@ rule dada2_infer_pooled_asvs:
 rule dada2_postprocess:
     input:
         get_inputs_for_asv_counting
-        # derep_R1=f"denoise/dada2/{config['pool']}_derep_R1.rds",
-        # derep_R2=f"denoise/dada2/{config['pool']}_derep_R2.rds",
-        # dada_R1=f"denoise/dada2/{config['pool']}_dada_R1.rds",
-        # dada_R2=f"denoise/dada2/{config['pool']}_dada_R2.rds",
     output:
         seqtab=f"denoise/{config['pool']}_asv_seqtab.tsv",
         counts=f"denoise/{config['pool']}_asv_counts.tsv",
