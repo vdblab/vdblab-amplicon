@@ -3,7 +3,6 @@ import traceback
 
 
 def main(input, out_fn):
-
     lines = [
         "# id: 'contamination'",
         "# plot_type: 'table'",
@@ -20,11 +19,9 @@ def main(input, out_fn):
 
     return
 
+
 if __name__ == "__main__":
-    with (
-            open(snakemake.log.e, "w") as ef,
-            redirect_stderr(ef)
-    ):
+    with open(snakemake.log.e, "w") as ef, redirect_stderr(ef):
         try:
             main(
                 snakemake.input,

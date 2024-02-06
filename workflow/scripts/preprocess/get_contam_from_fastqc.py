@@ -15,7 +15,6 @@ def extract_contam(fastqc_zip):
     target = os.path.basename(fastqc_zip).replace(".zip", "")
     archive = ZipFile(fastqc_zip, "r")
     with archive.open(f"{target}/fastqc_data.txt") as content:
-
         in_section_of_interest = False
         for line in content:
             line = line.decode().strip()
@@ -55,10 +54,7 @@ def main(inputs, sample_id, out_f):
 
 
 if __name__ == "__main__":
-    with (
-        open(snakemake.log.e, "w") as ef,
-        open(snakemake.log.o, "w") as of
-    ):
+    with open(snakemake.log.e, "w") as ef, open(snakemake.log.o, "w") as of:
         sys.stderr = ef
         sys.stdout = of
 

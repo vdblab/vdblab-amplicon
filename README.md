@@ -55,6 +55,7 @@ snakemake \
   --config \
     stage=preprocess \
     pool=test \
+    lib_layout=paired \
     manifest=demux/test_manifest.tsv \
     primer_F=AYTGGGYDTAAAGNG \
     primer_R=CCGTCAATTYHTTTRAGT
@@ -66,6 +67,8 @@ snakemake \
   --directory work \
   --config \
     pool=test \
+    lib_layout=paired \
+    pooling=none \
     manifest=preprocess/test_manifest.tsv
 ```
 
@@ -86,7 +89,7 @@ snakemake \
 
 ### Configuration
 
->we are no longer doing config schema validation becuase we rely on snakedeploy for typical usage.  Snakedeploy only fetches files called config.yaml, not the whole directory of configs and schemas.
+
 
 
 Run-specific parameters are set using the `--config`.

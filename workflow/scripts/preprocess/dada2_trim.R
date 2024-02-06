@@ -26,21 +26,21 @@ print(paste0("Running multithreaded steps with ", ncores, " cores"))
 sprintf("%s - running FilterAndTrim", Sys.time())
 
 if (length(in_R1) > 1){
-paired=TRUE
-out <- data.frame(filterAndTrim(
-  in_R1[1], out_R1, in_R1[2], out_R2,
-  truncLen = filter_trunclen,
-  maxN = 0, maxEE = 2, truncQ = 2, rm.phix = TRUE,
-  compress = TRUE, multithread = ncores
-))
+    paired=TRUE
+    out <- data.frame(filterAndTrim(
+        in_R1[1], out_R1, in_R1[2], out_R2,
+        truncLen = filter_trunclen,
+        maxN = 0, maxEE = 2, truncQ = 2, rm.phix = TRUE,
+        compress = TRUE, multithread = ncores
+    ))
 } else{
-paired=FALSE
-out <- data.frame(filterAndTrim(
-  in_R1[1], out_R1,
-  truncLen = filter_trunclen[1],
-  maxN = 0, maxEE = 2, truncQ = 2, rm.phix = TRUE,
-  compress = TRUE, multithread = ncores
-))
+    paired=FALSE
+    out <- data.frame(filterAndTrim(
+        in_R1[1], out_R1,
+        truncLen = filter_trunclen[1],
+        maxN = 0, maxEE = 2, truncQ = 2, rm.phix = TRUE,
+        compress = TRUE, multithread = ncores
+    ))
 }
 
 rownames(out) <- gsub("_noprimers_R1.fastq.gz", "", rownames(out))
