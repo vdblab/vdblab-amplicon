@@ -32,10 +32,10 @@ jobs:
           --use-singularity
           --singularity-prefix /github/workspace/.singularity/
           --singularity-args '-B /github/'
-	  --config
-	  stage=demux
-	  pool=test
-	  nshards=2
+          --config
+          stage=demux
+          pool=test
+          nshards=2
           R1=["$PWD/.test/amplicon/test_input/test_R1_001.fastq.gz"]
           R2=["$PWD/.test/amplicon/test_input/test_R2_001.fastq.gz"]
           oligos=$PWD/.test/amplicon/test_input/pool1059.oligos
