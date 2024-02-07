@@ -20,7 +20,7 @@ wildcard_constraints:
 min_version("6.0")
 
 
-#validate(config, os.path.join(workflow.current_basedir, "../../config/demux.schema.yaml"))
+# validate(config, os.path.join(workflow.current_basedir, "../../config/demux.schema.yaml"))
 
 
 BARCODES = extract_barcodes(config["oligos"])
@@ -43,9 +43,15 @@ rule all:
     input:
         f"demux/{config['pool']}_manifest.tsv",
         f"demux/{config['pool']}_missing_or_incomplete.tsv",
-        expand(f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R1_fastqc.html", lib=NLIBS),
-        expand(f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R2_fastqc.html", lib=NLIBS),
-        expand("demux/fastq/{sample}_R{dir}.fastq.gz", sample=SAMPLES, dir=[1,2]),
+        expand(
+            f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R1_fastqc.html",
+            lib=NLIBS,
+        ),
+        expand(
+            f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R2_fastqc.html",
+            lib=NLIBS,
+        ),
+        expand("demux/fastq/{sample}_R{dir}.fastq.gz", sample=SAMPLES, dir=[1, 2]),
 
 
 rule concat_fastqs:
@@ -89,7 +95,9 @@ rule generate_pool_fastqc_report:
         R2=temp(f"demux/fastqc_reports/{config['pool']}_lib{{lib}}_R2.fq.gz"),
     params:
         outdir=lambda wildcards, output: os.path.dirname(output[0]),
-        base=lambda wildcards, output: os.path.basename(output[0]).replace("1_fastqc.html", ""),
+        base=lambda wildcards, output: os.path.basename(output[0]).replace(
+            "1_fastqc.html", ""
+        ),
     container:
         "docker://staphb/fastqc:0.11.9"
     # fastqc uses one thread per input file, so increasing this won't help
@@ -294,10 +302,10 @@ rule merge_shards:
     input:
         fastqs=lambda wildcards: expand(
             "demux/raw/{{sample}}_R{{dir}}_round{round}_s{shard}.fastq.gz",
-            round=[1, 2],
-            shard=SHARDS,
-        )
-        if wildcards.sample != "orphans"
+                round=[1, 2],
+                shard=SHARDS,
+            )
+            if wildcards.sample != "orphans"
         else expand(
             "demux/raw/{{sample}}_R{{dir}}_round2_s{shard}.fastq.gz",
             shard=SHARDS,
@@ -335,7 +343,9 @@ rule output_manifest:
         with open(log.e, "w") as ef, redirect_stderr(ef):
             try:
                 sample_ids = SAMPLES + ["orphans"]
-                fastq_template = os.path.join(os.getcwd(), "demux/fastq/{sample}_R{dir}.fastq.gz")
+                fastq_template = os.path.join(
+                    os.getcwd(), "demux/fastq/{sample}_R{dir}.fastq.gz"
+                )
                 write_manifest_and_missing(
                     sample_ids, fastq_template, output["manifest"], output["missing"]
                 )

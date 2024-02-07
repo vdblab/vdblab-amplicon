@@ -13,8 +13,7 @@ def make_shard_names(nshards):
 
 
 def load_manifest(manifest_path, manifest_schema_path=None):
-    """
-    """
+    """ """
     manifest = pd.read_csv(manifest_path, sep="\t")
     if manifest_schema_path is not None:
         validate(manifest, manifest_schema_path)
@@ -24,13 +23,17 @@ def load_manifest(manifest_path, manifest_schema_path=None):
 def get_samples_from_manifest(manifest):
     return [s for s in manifest.index.tolist() if s != "orphans"]
 
+
 def extract_primers(oligos_path):
     with open(config["oligos"], "r") as in_f:
         for line in in_f:
-            assert line.upper().startswith("PRIMER"), "invalid oligos file, should start with `primer`"
+            assert line.upper().startswith(
+                "PRIMER"
+            ), "invalid oligos file, should start with `primer`"
             primers = line.strip().split("\t")
             primers.pop(0)
             return primers
+
 
 def extract_barcodes(oligos_path):
     sample_ids = []
@@ -65,7 +68,9 @@ def gz_size(fname):
         return f.seek(0, whence=2)
 
 
-def write_manifest_and_missing(sample_ids, fastq_template, manifest_path, missing_path, paired=True):
+def write_manifest_and_missing(
+    sample_ids, fastq_template, manifest_path, missing_path, paired=True
+):
     R1 = []
     R2 = []
     for s in sample_ids:
@@ -86,7 +91,7 @@ def write_manifest_and_missing(sample_ids, fastq_template, manifest_path, missin
     if paired:
         is_incomplete = (manifest["R1"] == "") | (manifest["R2"] == "")
     else:
-        is_incomplete = (manifest["R1"] == "")
+        is_incomplete = manifest["R1"] == ""
 
     manifest[is_incomplete].to_csv(missing_path, sep="\t", index=False)
 
@@ -95,30 +100,35 @@ def write_manifest_and_missing(sample_ids, fastq_template, manifest_path, missin
 
 
 def sample_is_paired(wildcards):
-    """ not currently used, as we are expecting/enforcing pools to contain all either paired or single
-    """
-    return MANIFEST.loc[wildcards.sample, "R2"] != "" and not math.isnan(MANIFEST.loc[wildcards.sample, "R2"])
+    """not currently used, as we are expecting/enforcing pools to contain all either paired or single"""
+    return MANIFEST.loc[wildcards.sample, "R2"] != "" and not math.isnan(
+        MANIFEST.loc[wildcards.sample, "R2"]
+    )
+
 
 def is_paired():
     if config["lib_layout"] not in ["paired", "single"]:
         raise ValueError("lib_layout must be specified as either paired or single")
     return config["lib_layout"] == "paired"
 
+
 def get_inputs_for_asv_counting(wildcards):
-    """ Conditionally return the paths to dereplicated and dada2 objects
+    """Conditionally return the paths to dereplicated and dada2 objects
     depending on whether library is paired and whether its being
     run pooled or sample-by-sample
     """
     inputs = [
         "denoise/dada2/{sample}_derep_R1.rds",
-        "denoise/dada2/{sample}_dada_R1.rds"
+        "denoise/dada2/{sample}_dada_R1.rds",
     ]
     if is_paired():
-        inputs.extend([
-            "denoise/dada2/{sample}_derep_R2.rds",
-        "denoise/dada2/{sample}_dada_R2.rds"
-        ])
+        inputs.extend(
+            [
+                "denoise/dada2/{sample}_derep_R2.rds",
+                "denoise/dada2/{sample}_dada_R2.rds",
+            ]
+        )
     if config["pooling"] != "none":
-        for i,x in enumerate(inputs):
+        for i, x in enumerate(inputs):
             inputs[i] = x.format(sample=config["pool"])
     return inputs
