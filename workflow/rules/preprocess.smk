@@ -1,7 +1,7 @@
 import os
 import math
 import traceback
-
+import numpy as np
 from contextlib import redirect_stderr
 
 
@@ -33,6 +33,8 @@ def get_fastq_list(wildcards):
     fqs = [MANIFEST.loc[wildcards.sample, "R1"]]
     if is_paired():
         fqs.append(MANIFEST.loc[wildcards.sample, "R2"])
+    else:
+        assert np.isnan(MANIFEST.loc[wildcards.sample, "R2"]), f"Manifest contains R2 for sample {wildcards.sample}, but config lib_layout is not 'paired'"
     return fqs
 
 
@@ -163,6 +165,7 @@ rule quality_trim:
         trunclen_R2=config["trunclen_R2"],
         figdir_name="dada2/figures/",
         min_asv_len=config["min_asv_len"],
+        is_paired=is_paired(),
     log:
         e=f"{LOG_PREFIX}/dada2_trim_{{sample}}.e",
         o=f"{LOG_PREFIX}/dada2_trim_{{sample}}.o",

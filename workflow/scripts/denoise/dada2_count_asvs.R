@@ -5,7 +5,6 @@ sink(loge, type = "message")
 
 library(dada2)
 derep_R1 <- readRDS(snakemake@input[[1]])
-
 dada_R1 <- readRDS(snakemake@input[[2]])
 
 if (snakemake@params$is_paired){

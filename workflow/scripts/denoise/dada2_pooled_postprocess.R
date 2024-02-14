@@ -9,7 +9,6 @@ library(readr)
 library(tidyr)
 
 derep_R1 <- readRDS(snakemake@input[[1]])
-
 dada_R1 <- readRDS(snakemake@input[[2]])
 
 if (snakemake@params$is_paired){

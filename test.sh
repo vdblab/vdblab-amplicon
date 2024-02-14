@@ -61,15 +61,12 @@ case $mode in
 	  --singularity-args "-B ${PWD},/data/brinkvd/,/lila/$PWD/,/lila/data/brinkvd/,/scratch/" \
 	  $commonargs \
 	  --directory tmpprese/   \
-#	  --snakefile workflow/rules/preprocess.smk \
-#	  --configfile config/config.yaml \
 	  --config \
 	  stage=preprocess \
 	  sample=473  \
 	  pool="pool1" \
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  manifest=$PWD/.test/manifest_se.tsv \
-	  R1=$R1 \
 	  primer_F=AYTGGGYDTAAAGNG \
 	  primer_R=CCGTCAATTYHTTTRAGT \
 	  lib_layout=single \
