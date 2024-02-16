@@ -97,7 +97,6 @@ rule dada2_infer_pooled_asvs:
         "../scripts/denoise/dada2_infer_asvs.R"
 
 
-
 rule dada2_postprocess:
     input:
         unpack(get_inputs_for_asv_counting),
