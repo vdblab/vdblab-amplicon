@@ -7,14 +7,13 @@ library(dada2)
 library(readr)
 getN <- function(x) sum(getUniques(x))
 
-derep_R1 <- readRDS(snakemake@input[[1]])
-
-dada_R1 <- readRDS(snakemake@input[[2]])
+derep_R1 <- readRDS(snakemake@input$derep_R1)
+dada_R1 <- readRDS(snakemake@input$dada_R1)
 
 if (snakemake@params$is_paired){
-    derep_R2 <- readRDS(snakemake@input[[3]])
-    dada_R2 <- readRDS(snakemake@input[[4]])
-    merged <- readRDS(snakemake@input[[5]])
+    derep_R2 <- readRDS(snakemake@input$derep_R2)
+    dada_R2 <- readRDS(snakemake@input$dada_R2)
+    merged <- readRDS(snakemake@input$merged)
     metrics <- data.frame(
         sample_id = snakemake@wildcards$sample,
         derepped_R1 = getN(derep_R1),

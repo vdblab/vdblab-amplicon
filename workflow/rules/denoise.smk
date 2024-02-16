@@ -97,7 +97,7 @@ rule dada2_infer_asvs:
 
 rule dada2_count_asvs:
     input:
-        get_inputs_for_asv_counting
+        unpack(get_inputs_for_asv_counting)
     output:
         merged=temp("denoise/dada2/{sample}_merged.rds"),
         seqtab=temp("denoise/dada2/{sample}_asv_seqtab.rds"),
@@ -158,7 +158,7 @@ rule collect_dada2_sample_metrics:
 
 use rule collect_dada2_sample_metrics as collect_dada2_sample_metrics_se with:
     input:
-        get_inputs_for_asv_counting
+        unpack(get_inputs_for_asv_counting)
     output:
         metrics=temp("denoise/dada2/{sample}_dada2_metrics-se.tsv"),
 
