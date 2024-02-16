@@ -66,6 +66,7 @@ snakemake \
 snakemake \
   --directory work \
   --config \
+    stage=denoise \
     pool=test \
     lib_layout=paired \
     pooling=none \
@@ -78,7 +79,7 @@ snakemake \
   --directory work \
   --config \
     pool=test \
-	stage=annotate \
+    stage=annotate \
     asv_fasta=denoise/test_asvs.fasta \
     adapter_ref=/data/brinkvd/resources/references/synthetic/stephenturner-adapters/93b5f91/adapters_combined_256_unique.fasta \
     human_ref=/data/brinkvd/resources/indexes/human/hg38/hg38/minimap2/hg38.fa.masked.gz.mmi \
