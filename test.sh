@@ -5,7 +5,7 @@ mode=$1
 
 R1="[$PWD/.test/amplicon/test_input/test_R1_001.fastq.gz]"
 R2="[$PWD/.test/amplicon/test_input/test_R2_001.fastq.gz]"
-commonargs=" --restart-times 0"
+commonargs=" --restart-times 0 -j 1"
 echo $commonargs
 case $mode in
 
@@ -21,7 +21,7 @@ case $mode in
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \
 	  R2=$R2 \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml nshards=1
+	  nshards=1
       ;;
   demux )
       snakemake \
@@ -36,7 +36,7 @@ case $mode in
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \
 	  R2=$R2 \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml nshards=1
+	  nshards=1
       ;;
   preprocess )
       snakemake \
@@ -53,7 +53,6 @@ case $mode in
 	  R2=$R2 \
 	  primer_F=AYTGGGYDTAAAGNG \
 	  primer_R=CCGTCAATTYHTTTRAGT \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
   preprocess_se )
@@ -70,7 +69,6 @@ case $mode in
 	  primer_F=AYTGGGYDTAAAGNG \
 	  primer_R=CCGTCAATTYHTTTRAGT \
 	  lib_layout=single \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
   denoise_pooled )
@@ -86,7 +84,6 @@ case $mode in
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \
 	  R2=$R2 \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
   denoise_pooled_se )
@@ -104,7 +101,6 @@ case $mode in
 	  R2=$R2 \
 	  lib_layout="single" \
 	  pooling="pseudo" \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
   denoise_pseudo )
@@ -121,7 +117,6 @@ case $mode in
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \
 	  R2=$R2 \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
   denoise )
@@ -133,12 +128,11 @@ case $mode in
 	  stage=denoise \
 	  sample=473  \
 	  pool="pool1" \
-	  pooling=False \
+	  pooling=none \
 	  manifest=$PWD/tmppre/preprocess/pool1_manifest.tsv \
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \
 	  R2=$R2 \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
   denoise_se )
@@ -155,7 +149,6 @@ case $mode in
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \
 	  lib_layout="single" \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
   annotate )
@@ -173,7 +166,6 @@ case $mode in
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  R1=$R1 \
 	  R2=$R2 \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
 

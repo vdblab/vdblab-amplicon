@@ -14,7 +14,7 @@ envvars:
 
 min_version("6.0")
 
-validate(config, os.path.join(workflow.current_basedir, "../../config/preprocess.schema.yaml"))
+validate(config, os.path.join(workflow.basedir, "../config/preprocess.schema.yaml"))
 
 MANIFEST = load_manifest(config["manifest"], None)
 SAMPLES = get_samples_from_manifest(MANIFEST)

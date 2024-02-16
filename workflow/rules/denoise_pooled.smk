@@ -19,7 +19,7 @@ wildcard_constraints:
 
 min_version("6.0")
 
-validate(config, os.path.join(workflow.basedir, "../../config/denoise.schema.yaml"))
+validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
 
 assert config["pooling"] != "none", "pooled workflow selected but config specifies pooling=none"
 
