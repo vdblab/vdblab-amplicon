@@ -21,6 +21,7 @@ SAMPLES = get_samples_from_manifest(MANIFEST)
 
 LOG_PREFIX = "logs/preprocess"
 
+
 onstart:
     with open("preprocess_config_used.yaml", "w") as f:
         yaml.dump(config, f)
@@ -29,23 +30,28 @@ onstart:
 localrules:
     all,
 
+
 def get_fastq_list(wildcards):
     fqs = [MANIFEST.loc[wildcards.sample, "R1"]]
     if is_paired():
         fqs.append(MANIFEST.loc[wildcards.sample, "R2"])
     else:
-        assert np.isnan(MANIFEST.loc[wildcards.sample, "R2"]), f"Manifest contains R2 for sample {wildcards.sample}, but config lib_layout is not 'paired'"
+        assert np.isnan(
+            MANIFEST.loc[wildcards.sample, "R2"]
+        ), f"Manifest contains R2 for sample {wildcards.sample}, but config lib_layout is not 'paired'"
     return fqs
 
 
 def get_fastqs_to_trim(wildcards):
-    """ return a list of fastqs for trimming depending on whether paired library and
+    """return a list of fastqs for trimming depending on whether paired library and
     whether primers have already been removed
     """
     if config["removeprimers"]:
         if is_paired():
-            return ["preprocess/primers-removed/{sample}_noprimers_R1.fastq.gz",
-                    "preprocess/primers-removed/{sample}_noprimers_R2.fastq.gz"]
+            return [
+                "preprocess/primers-removed/{sample}_noprimers_R1.fastq.gz",
+                "preprocess/primers-removed/{sample}_noprimers_R2.fastq.gz",
+            ]
         else:
             return ["preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz"]
     else:
@@ -61,7 +67,13 @@ def get_all_outputs(wildcards):
             f"preprocess/multiqc_reports/{config['pool']}_dada2_trimming_report_mqc.out",
             f"preprocess/multiqc_reports/{config['pool']}_adapter_contam_report_mqc.out",
         ]
-        results.extend(expand("preprocess/primers-removed/{sample}_noprimers_R{d}.fastq.gz", sample=SAMPLES, d=[1,2]))
+        results.extend(
+            expand(
+                "preprocess/primers-removed/{sample}_noprimers_R{d}.fastq.gz",
+                sample=SAMPLES,
+                d=[1, 2],
+            )
+        )
     else:
         results = [
             f"preprocess/{config['pool']}_manifest.tsv",
@@ -70,14 +82,18 @@ def get_all_outputs(wildcards):
             f"preprocess/multiqc_reports/{config['pool']}_dada2_trimming_report_mqc.out",
             f"preprocess/multiqc_reports/{config['pool']}_adapter_contam_report_mqc.out",
         ]
-        results.extend(expand("preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz", sample=SAMPLES))
+        results.extend(
+            expand(
+                "preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz",
+                sample=SAMPLES,
+            )
+        )
     return results
 
 
 rule all:
     input:
-        get_all_outputs
-
+        get_all_outputs,
 
 
 rule remove_primers:
@@ -115,15 +131,26 @@ rule remove_primers:
     this may need to be modified
     """
     input:
-        reads=get_fastq_list
+        reads=get_fastq_list,
     output:
         R1=temp("preprocess/primers-removed/{sample}_noprimers_R1.fastq.gz"),
         R2=temp("preprocess/primers-removed/{sample}_noprimers_R2.fastq.gz"),
     params:
-        outstring=lambda wc, input, output: " -o {} -p {} ".format(output.R1, output.R2) if len(input.reads) > 1 else " -o {}".format(output.R1),
-        primerstring=lambda wc, input, output: " -g correct={F} -g flipped={R} -G flipped={F} -G correct={R}".format(F=config["primer_F"], R=config["primer_R"]) if len(input.reads) > 1 else \
-            " -g correct={F} -g flipped={R} ".format(F=config["primer_F"], R=config["primer_R"]) ,
-        preprocess_min_read_length=config['preprocess_min_read_length'],
+        outstring=lambda wc, input, output: (
+            " -o {} -p {} ".format(output.R1, output.R2)
+            if len(input.reads) > 1
+            else " -o {}".format(output.R1)
+        ),
+        primerstring=lambda wc, input, output: (
+            " -g correct={F} -g flipped={R} -G flipped={F} -G correct={R}".format(
+                F=config["primer_F"], R=config["primer_R"]
+            )
+            if len(input.reads) > 1
+            else " -g correct={F} -g flipped={R} ".format(
+                F=config["primer_F"], R=config["primer_R"]
+            )
+        ),
+        preprocess_min_read_length=config["preprocess_min_read_length"],
     container:
         "docker://ghcr.io/vdblab/cutadapt:3.7"
     threads: 4
@@ -146,15 +173,15 @@ rule remove_primers:
             > {log.o} 2>> {log.e}
         """
 
+
 use rule remove_primers as remove_primers_se with:
     output:
         R1=temp("preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz"),
 
 
-
 rule quality_trim:
     input:
-        reads=get_fastqs_to_trim
+        reads=get_fastqs_to_trim,
     output:
         R1="preprocess/trimmed/{sample}_trimmed_R1.fastq.gz",
         R2="preprocess/trimmed/{sample}_trimmed_R2.fastq.gz",
@@ -176,6 +203,7 @@ rule quality_trim:
         mem_mb=4 * 1024,
     script:
         "../scripts/preprocess/dada2_trim.R"
+
 
 use rule quality_trim as quality_trim_se with:
     output:
@@ -207,10 +235,14 @@ rule output_manifest:
                 fastq_template = os.path.join(
                     os.getcwd(),
                     os.path.dirname(input[0]),
-                    "{sample}_trimmed_R{dir}.fastq.gz")
+                    "{sample}_trimmed_R{dir}.fastq.gz",
+                )
                 write_manifest_and_missing(
-                    SAMPLES, fastq_template, output["manifest"], output["missing"],
-                    paired=is_paired()
+                    SAMPLES,
+                    fastq_template,
+                    output["manifest"],
+                    output["missing"],
+                    paired=is_paired(),
                 )
             except Exception as e:
                 traceback.print_exc(file=ef)
@@ -224,7 +256,7 @@ rule output_manifest:
 
 rule sample_fastqc_report:
     input:
-        get_fastqs_to_trim
+        get_fastqs_to_trim,
     output:
         report_R1="preprocess/fastqc_reports/{sample}_noprimers_R1_fastqc.html",
         report_R2="preprocess/fastqc_reports/{sample}_noprimers_R2_fastqc.html",
@@ -250,6 +282,7 @@ rule sample_fastqc_report:
             2> {log.e} > {log.o}
         """
 
+
 use rule sample_fastqc_report as sample_fastqc_report_se with:
     output:
         report_R1="preprocess/fastqc_reports-se/{sample}_noprimers_R1_fastqc.html",
@@ -258,10 +291,13 @@ use rule sample_fastqc_report as sample_fastqc_report_se with:
 
 def get_fastqc_outputs(wildcards):
     if is_paired():
-        return ["preprocess/fastqc_reports/{sample}_noprimers_R1_fastqc.zip",
-                "preprocess/fastqc_reports/{sample}_noprimers_R2_fastqc.zip"]
+        return [
+            "preprocess/fastqc_reports/{sample}_noprimers_R1_fastqc.zip",
+            "preprocess/fastqc_reports/{sample}_noprimers_R2_fastqc.zip",
+        ]
     else:
         return ["preprocess/fastqc_reports-se/{sample}_noprimers_R1_fastqc.zip"]
+
 
 rule get_contam_from_fastqc:
     """
@@ -270,7 +306,7 @@ rule get_contam_from_fastqc:
     such as the amplicon's primer binding site, non-varying regions between V4-V5, etc
     """
     input:
-        get_fastqc_outputs
+        get_fastqc_outputs,
     output:
         o="preprocess/fastqc_contam/{sample}_fastqc_contaminants.tsv",
     threads: 2
@@ -292,6 +328,8 @@ def get_trim_reports(wildcards):
         return expand(
             "preprocess/dada2/{sample}_quality_trimming_stats-se.txt", sample=SAMPLES
         )
+
+
 rule make_dada2_trimming_multiqc_report:
     """
     This is its own rule purely so we can mark the input files as temporary,

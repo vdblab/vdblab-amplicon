@@ -16,8 +16,6 @@ from snakemake.utils import min_version, validate
 min_version("6.0")
 
 
-
-
 configfile: os.path.join(workflow.basedir, "../config/config.yaml")
 
 
@@ -49,11 +47,10 @@ module demux:
 
 
 if config["stage"] == "demux":
+
     use rule * from demux as demux_*
+
     config["primer_F"], config["primer_R"] = extract_primers(config)
-
-
-
 
 
 module preprocess:
@@ -61,10 +58,12 @@ module preprocess:
         "rules/preprocess.smk"
     config:
         config
-    skip_validation: False
+    skip_validation:
+        False
 
 
 if config["stage"] == "preprocess":
+
     use rule * from preprocess as preprocess_*
 
 
@@ -87,6 +86,7 @@ else:
 
 
 if config["stage"] == "denoise":
+
     use rule * from denoise as denoise_*
 
 
@@ -95,10 +95,12 @@ module annotate:
         "rules/annotate.smk"
     config:
         config
-    skip_validation: True
+    skip_validation:
+        True
 
 
 if config["stage"] == "annotate":
+
     use rule * from annotate as annotate_*
 
 
@@ -118,5 +120,5 @@ onstart:
 
 rule all:
     input:
-        getattr(rules, f"{config['stage']}_all").input
+        getattr(rules, f"{config['stage']}_all").input,
     default_target: True
