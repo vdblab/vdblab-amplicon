@@ -19,7 +19,7 @@ wildcard_constraints:
 
 min_version("6.0")
 
-#validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
+# validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
 
 
 MANIFEST = load_manifest(config["manifest"], None)
@@ -81,12 +81,13 @@ rule dada2_infer_pooled_asvs:
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     params:
-        pooling = "pseudo"
+        pooling="pseudo",
     threads: 8
     resources:
         mem_mb=8 * 1024,
     script:
         "../scripts/denoise/dada2_infer_asvs_pooled.R"
+
 
 rule dada2_postprocess:
     input:

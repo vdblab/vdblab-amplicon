@@ -51,7 +51,9 @@ case $mode in
 	  manifest=$PWD/tmpdemux/demux/pool1_manifest.tsv \
 	  R1=$R1 \
 	  R2=$R2 \
-	  multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
+          primer_F=AYTGGGYDTAAAGNG \
+          primer_R=CCGTCAATTYHTTTRAGT \
+          multiqc_config=${PWD}/vdb_shotgun/multiqc_config.yaml \
 	  nshards=2
       ;;
   denoise_pooled )

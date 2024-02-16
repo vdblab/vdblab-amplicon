@@ -13,7 +13,7 @@ envvars:
 
 min_version("6.0")
 
-#validate(config, os.path.join(workflow.current_basedir, "../config/preprocess.schema.yaml"))
+# validate(config, os.path.join(workflow.current_basedir, "../config/preprocess.schema.yaml"))
 
 MANIFEST = load_manifest(config["manifest"], None)
 SAMPLES = get_samples_from_manifest(MANIFEST)
@@ -154,7 +154,9 @@ rule output_manifest:
     run:
         with open(log.e, "w") as ef, redirect_stderr(ef):
             try:
-                fastq_template = os.path.join(os.getcwd(), "preprocess/trimmed/{sample}_trimmed_R{dir}.fastq.gz")
+                fastq_template = os.path.join(
+                    os.getcwd(), "preprocess/trimmed/{sample}_trimmed_R{dir}.fastq.gz"
+                )
                 write_manifest_and_missing(
                     SAMPLES, fastq_template, output["manifest"], output["missing"]
                 )

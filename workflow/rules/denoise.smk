@@ -19,7 +19,7 @@ wildcard_constraints:
 
 min_version("6.0")
 
-#validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
+# validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
 
 
 MANIFEST = load_manifest(config["manifest"], None)
@@ -85,6 +85,7 @@ rule dada2_infer_asvs:
         mem_mb=32 * 1024,
     script:
         "../scripts/denoise/dada2_infer_asvs.R"
+
 
 rule dada2_count_asvs:
     input:

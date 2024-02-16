@@ -13,8 +13,7 @@ def make_shard_names(nshards):
 
 
 def load_manifest(manifest_path, manifest_schema_path=None):
-    """
-    """
+    """ """
     manifest = pd.read_csv(manifest_path, sep="\t")
     if manifest_schema_path is not None:
         validate(manifest, manifest_schema_path)
@@ -24,13 +23,17 @@ def load_manifest(manifest_path, manifest_schema_path=None):
 def get_samples_from_manifest(manifest):
     return [s for s in manifest.index.tolist() if s != "orphans"]
 
+
 def extract_primers(oligos_path):
     with open(config["oligos"], "r") as in_f:
         for line in in_f:
-            assert line.upper().startswith("PRIMER"), "invalid oligos file, should start with `primer`"
+            assert line.upper().startswith(
+                "PRIMER"
+            ), "invalid oligos file, should start with `primer`"
             primers = line.strip().split("\t")
             primers.pop(0)
             return primers
+
 
 def extract_barcodes(oligos_path):
     sample_ids = []
