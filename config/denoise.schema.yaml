@@ -11,7 +11,15 @@ properties:
     type: string
   manifest:
     type: string
+  lib_layout:
+    type: string
+    pattern: "^(single|paired)$"
+  pooling:
+    type: string
+    pattern: "^(none|pseudo|pool)$"
 
 required:
   - pool
   - manifest
+  - pooling
+  - lib_layout

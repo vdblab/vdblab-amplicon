@@ -68,7 +68,9 @@ def gz_size(fname):
         return f.seek(0, whence=2)
 
 
-def write_manifest_and_missing(sample_ids, fastq_template, manifest_path, missing_path):
+def write_manifest_and_missing(
+    sample_ids, fastq_template, manifest_path, missing_path, paired=True
+):
     R1 = []
     R2 = []
     for s in sample_ids:
@@ -86,10 +88,43 @@ def write_manifest_and_missing(sample_ids, fastq_template, manifest_path, missin
 
     manifest = pd.DataFrame({"sample_id": sample_ids, "R1": R1, "R2": R2})
     manifest = manifest[["sample_id", "R1", "R2"]]
-
-    is_incomplete = (manifest["R1"] == "") | (manifest["R2"] == "")
+    if paired:
+        is_incomplete = (manifest["R1"] == "") | (manifest["R2"] == "")
+    else:
+        is_incomplete = manifest["R1"] == ""
 
     manifest[is_incomplete].to_csv(missing_path, sep="\t", index=False)
 
     manifest = manifest[~is_incomplete]
     manifest.to_csv(manifest_path, sep="\t", index=False)
+
+
+def sample_is_paired(wildcards):
+    """not currently used, as we are expecting/enforcing pools to contain all either paired or single"""
+    return MANIFEST.loc[wildcards.sample, "R2"] != "" and not math.isnan(
+        MANIFEST.loc[wildcards.sample, "R2"]
+    )
+
+
+def is_paired():
+    if config["lib_layout"] not in ["paired", "single"]:
+        raise ValueError("lib_layout must be specified as either paired or single")
+    return config["lib_layout"] == "paired"
+
+
+def get_inputs_for_asv_counting(wildcards):
+    """Conditionally return the paths to dereplicated and dada2 objects
+    depending on whether library is paired and whether its being
+    run pooled or sample-by-sample
+    """
+    inputs = {
+        "derep_R1": "denoise/dada2/{sample}_derep_R1.rds",
+        "dada_R1": "denoise/dada2/{sample}_dada_R1.rds",
+    }
+    if is_paired():
+        inputs["derep_R2"] = ("denoise/dada2/{sample}_derep_R2.rds",)
+        inputs["dada_R2"] = "denoise/dada2/{sample}_dada_R2.rds"
+    if config["pooling"] != "none":
+        for k, v in inputs.items():
+            inputs[k] = v.format(sample=config["pool"])
+    return inputs

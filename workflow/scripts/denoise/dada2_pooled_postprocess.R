@@ -4,26 +4,25 @@ sink(logo, type = "output")
 sink(loge, type = "message")
 
 library(dada2)
-
-derep_R1 <- readRDS(snakemake@input$derep_R1)
-derep_R2 <- readRDS(snakemake@input$derep_R2)
-
-dada_R1 <- readRDS(snakemake@input$dada_R1)
-dada_R2 <- readRDS(snakemake@input$dada_R2)
-
-ff <- 0
-
-merged <- mergePairs(dada_R1, derep_R1, dada_R2, derep_R2, verbose = TRUE)
-saveRDS(merged, snakemake@output$merged)
-
-seqtab <- makeSequenceTable(merged)
-saveRDS(seqtab, snakemake@output$seqtab)
-
-
-library(dada2)
 library(dplyr)
 library(readr)
 library(tidyr)
+
+derep_R1 <- readRDS(snakemake@input$derep_R1)
+dada_R1 <- readRDS(snakemake@input$dada_R1)
+
+if (snakemake@params$is_paired){
+    derep_R2 <- readRDS(snakemake@input$derep_R2)
+    dada_R2 <- readRDS(snakemake@input$dada_R2)
+
+    merged <- mergePairs(dada_R1, derep_R1, dada_R2, derep_R2, verbose = TRUE)
+    saveRDS(merged, snakemake@output$merged)
+}else{
+    merged <- dada_R1
+}
+seqtab <- makeSequenceTable(merged)
+saveRDS(seqtab, snakemake@output$seqtab)
+
 
 get_seq_hash <- function(seq_vector) {
   sapply(tolower(seq_vector), function(x) {
@@ -73,14 +72,31 @@ write.csv(seqtabfinal_counts, snakemake@output$counts, row.names = FALSE)
 
 getN <- function(x) sum(getUniques(x))
 
-metrics <- data.frame(
-  derepped_R1 = sapply(derep_R1, getN),
-  derepped_R2 = sapply(derep_R2, getN),
-  denoised_R1 = sapply(dada_R1, getN),
-  denoised_R2 = sapply(dada_R2, getN),
-  merged = sapply(merged, getN),
-  sample_id = names(dada_R2)
-)
+if (snakemake@params$is_paired){
+    derep_R2 <- readRDS(snakemake@input[[3]])
+    dada_R2 <- readRDS(snakemake@input[[4]])
+    merged <- readRDS(snakemake@input[[5]])
+    metrics <- data.frame(
+        derepped_R1 = sapply(derep_R1, getN),
+        derepped_R2 = sapply(derep_R2, getN),
+        denoised_R1 = sapply(dada_R1, getN),
+        denoised_R2 = sapply(dada_R2, getN),
+        merged = sapply(merged, getN),
+        sample_id = names(dada_R1)
+    )
+} else{
+    metrics <- data.frame(
+        derepped_R1 = sapply(derep_R1, getN),
+        derepped_R2 = rep(NA, length(derep_R1)),
+        denoised_R1 = sapply(dada_R1, getN),
+        denoised_R2 = rep(NA, length(derep_R1)),
+        merged = rep(NA, length(derep_R1)),
+        sample_id = names(dada_R1)
+    )
+}
+
+
+
 rownames(metrics) <- names(derep_R1)
 write_tsv(metrics, snakemake@output$metrics)
 no_chim_counts <- seqtab_nobimera_clean |>

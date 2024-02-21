@@ -19,8 +19,11 @@ wildcard_constraints:
 
 min_version("6.0")
 
-# validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
+validate(config, os.path.join(workflow.basedir, "../config/denoise.schema.yaml"))
 
+assert (
+    config["pooling"] == "none"
+), f"unpooled workflow selected but config specifies pooling={config['pooling']}"
 
 MANIFEST = load_manifest(config["manifest"], None)
 SAMPLES = get_samples_from_manifest(MANIFEST)
@@ -37,14 +40,19 @@ localrules:
     all,
 
 
+results = [
+    f"denoise/{config['pool']}_error_R1.rds",
+    f"denoise/{config['pool']}_asvs.fasta",
+    f"denoise/{config['pool']}_asv_counts.tsv",
+    f"denoise/multiqc_reports/{config['pool']}_denoise_metrics_mqc.out",
+]
+if is_paired():
+    results.append(f"denoise/{config['pool']}_error_R2.rds")
+
+
 rule all:
     input:
-        f"denoise/{config['pool']}_error_R1.rds",
-        f"denoise/{config['pool']}_error_R2.rds",
-        f"denoise/{config['pool']}_asvs.fasta",
-        f"denoise/{config['pool']}_asv_counts.tsv",
-        f"denoise/{config['pool']}_denoise_metrics.tsv",
-        f"denoise/multiqc_reports/{config['pool']}_denoise_metrics_mqc.out",
+        results,
 
 
 rule dada2_learn_errors:
@@ -68,13 +76,20 @@ rule dada2_learn_errors:
         "../scripts/denoise/dada2_learn_errors.R"
 
 
+def get_infer_asv_fastq(wildcards):
+    tmp = MANIFEST.loc[wildcards.sample, f"R{wildcards.dir}"]
+    return tmp
+
+
 rule dada2_infer_asvs:
     input:
-        fastq=lambda wildcards: MANIFEST.loc[wildcards.sample, f"R{wildcards.dir}"],
+        fastq=get_infer_asv_fastq,
         error=f"denoise/{config['pool']}_error_R{{dir}}.rds",
     output:
         derep=temp("denoise/dada2/{sample}_derep_R{dir}.rds"),
         dada=temp("denoise/dada2/{sample}_dada_R{dir}.rds"),
+    params:
+        pooling="none",
     log:
         e=f"{LOG_PREFIX}/dada2_infer_asvs_{{sample}}_R{{dir}}.e",
         o=f"{LOG_PREFIX}/dada2_infer_asvs_{{sample}}_R{{dir}}.o",
@@ -89,16 +104,15 @@ rule dada2_infer_asvs:
 
 rule dada2_count_asvs:
     input:
-        derep_R1="denoise/dada2/{sample}_derep_R1.rds",
-        derep_R2="denoise/dada2/{sample}_derep_R2.rds",
-        dada_R1="denoise/dada2/{sample}_dada_R1.rds",
-        dada_R2="denoise/dada2/{sample}_dada_R2.rds",
+        unpack(get_inputs_for_asv_counting),
     output:
         merged=temp("denoise/dada2/{sample}_merged.rds"),
         seqtab=temp("denoise/dada2/{sample}_asv_seqtab.rds"),
     log:
         e=f"{LOG_PREFIX}/dada2_count_asvs_{{sample}}.e",
         o=f"{LOG_PREFIX}/dada2_count_asvs_{{sample}}.o",
+    params:
+        is_paired=is_paired(),
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     threads: 1
@@ -108,9 +122,18 @@ rule dada2_count_asvs:
         "../scripts/denoise/dada2_count_asvs.R"
 
 
+use rule dada2_count_asvs as dada2_count_asvs_se with:
+    output:
+        seqtab=temp("denoise/dada2/{sample}_asv_seqtab-se.rds"),
+
+
 rule dada2_remove_chimeras:
     input:
-        seqtab=expand("denoise/dada2/{sample}_asv_seqtab.rds", sample=SAMPLES),
+        seqtab=expand(
+            "denoise/dada2/{sample}_asv_seqtab{se}.rds",
+            sample=SAMPLES,
+            se="" if is_paired() else "-se",
+        ),
     output:
         seqtab=f"denoise/{config['pool']}_asv_seqtab.tsv",
         counts=f"denoise/{config['pool']}_asv_counts.tsv",
@@ -129,13 +152,12 @@ rule dada2_remove_chimeras:
 
 rule collect_dada2_sample_metrics:
     input:
-        derep_R1="denoise/dada2/{sample}_derep_R1.rds",
-        derep_R2="denoise/dada2/{sample}_derep_R2.rds",
-        dada_R1="denoise/dada2/{sample}_dada_R1.rds",
-        dada_R2="denoise/dada2/{sample}_dada_R2.rds",
+        get_inputs_for_asv_counting,
         merged="denoise/dada2/{sample}_merged.rds",
     output:
         metrics=temp("denoise/dada2/{sample}_dada2_metrics.tsv"),
+    params:
+        is_paired=is_paired(),
     log:
         e=f"{LOG_PREFIX}/collect_dada2_sample_metrics_{{sample}}.e",
         o=f"{LOG_PREFIX}/collect_dada2_sample_metrics_{{sample}}.o",
@@ -147,10 +169,19 @@ rule collect_dada2_sample_metrics:
         "../scripts/denoise/collect_dada2_sample_metrics.R"
 
 
+use rule collect_dada2_sample_metrics as collect_dada2_sample_metrics_se with:
+    input:
+        unpack(get_inputs_for_asv_counting),
+    output:
+        metrics=temp("denoise/dada2/{sample}_dada2_metrics-se.tsv"),
+
+
 rule aggregate_metrics:
     input:
         sample_metrics=expand(
-            "denoise/dada2/{sample}_dada2_metrics.tsv", sample=SAMPLES
+            "denoise/dada2/{sample}_dada2_metrics{se}.tsv",
+            sample=SAMPLES,
+            se="" if is_paired() else "-se",
         ),
         seq_counts=f"denoise/{config['pool']}_asv_seqtab.tsv",
     output:

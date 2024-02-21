@@ -19,7 +19,7 @@ min_version("6.0")
 configfile: os.path.join(workflow.basedir, "../config/config.yaml")
 
 
-# validate(config, "runconfig.schema.yaml")
+validate(config, "../config/config.schema.yaml")
 
 
 localrules:
@@ -59,7 +59,7 @@ module preprocess:
     config:
         config
     skip_validation:
-        True
+        False
 
 
 if config["stage"] == "preprocess":
@@ -68,7 +68,7 @@ if config["stage"] == "preprocess":
 
 
 # note that the default pipeline
-if not config["pooling"]:
+if config["pooling"] == "none":
 
     module denoise:
         snakefile:
