@@ -104,7 +104,6 @@ rule generate_pool_fastqc_report:
         ),
     container:
         "docker://staphb/fastqc:0.11.9"
-    # fastqc uses one thread per input file, so increasing this won't help
     threads: 2
     resources:
         mem_mb=4 * 1024,
@@ -113,10 +112,11 @@ rule generate_pool_fastqc_report:
         e=f"{LOG_PREFIX}/pool_fastqc_lib{{lib}}.e",
     shell:
         """
+        ls $(dirname {input.R1})
         ln -s {input.R1} {output.R1}
         ln -s {input.R2} {output.R2}
-        cp {input.R1} {output.R1}
-        cp {input.R2} {output.R2}
+        #cp {input.R1} {output.R1}
+        #cp {input.R2} {output.R2}
         fastqc \
             --outdir {params.outdir} \
             --threads {threads} \
