@@ -78,6 +78,7 @@ rule concat_fastqs:
         cat {input.R2} > {output.R2} 2>> {log.e}
         """
 
+
 rule generate_pool_fastqc_report:
     """ we generate per fastq fastqc reports.
     the symlinking is to ensure consitent names
