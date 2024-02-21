@@ -78,10 +78,13 @@ rule concat_fastqs:
         cat {input.R2} > {output.R2} 2>> {log.e}
         """
 
-
 rule generate_pool_fastqc_report:
     """ we generate per fastq fastqc reports.
     the symlinking is to ensure consitent names
+    Edit 2024-02-16: symlinking seems to error sporatically working when run on cluster and
+    also when running as a github action
+    see https://github.com/vdblab/vdblab-amplicon/actions/runs/7933421207/job/21662144656
+    I can't figure out why. works fine as a localrule. Copying instead
     """
     input:
         R1=lambda wildcards: config["R1"][int(wildcards.lib)],
@@ -109,8 +112,10 @@ rule generate_pool_fastqc_report:
         e=f"{LOG_PREFIX}/pool_fastqc_lib{{lib}}.e",
     shell:
         """
-        ln -s {input.R1} {output.R1}
-        ln -s {input.R2} {output.R2}
+        #ln -s {input.R1} {output.R1}
+        #ln -s {input.R2} {output.R2}
+        cp {input.R1} {output.R1}
+        cp {input.R2} {output.R2}
         fastqc \
             --outdir {params.outdir} \
             --threads {threads} \
