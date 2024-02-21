@@ -113,8 +113,8 @@ rule generate_pool_fastqc_report:
         e=f"{LOG_PREFIX}/pool_fastqc_lib{{lib}}.e",
     shell:
         """
-        #ln -s {input.R1} {output.R1}
-        #ln -s {input.R2} {output.R2}
+        ln -s {input.R1} {output.R1}
+        ln -s {input.R2} {output.R2}
         cp {input.R1} {output.R1}
         cp {input.R2} {output.R2}
         fastqc \

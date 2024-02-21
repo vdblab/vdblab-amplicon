@@ -30,7 +30,7 @@ jobs:
           --resources "mem_mb=5000"
           --use-singularity
           --singularity-prefix /github/workspace/.singularity/
-          --singularity-args '-B /github/'
+          --singularity-args '-B /github/,/__w/'
           --config
           stage=demux
           pool=test
