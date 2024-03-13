@@ -55,7 +55,15 @@ def get_fastqs_to_trim(wildcards):
         else:
             return ["preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz"]
     else:
-        return get_fastq_list(wildcards)
+        # we keep the same basename so that fastqc works well for both
+        if is_paired():
+            return [
+                "tmp/{sample}_noprimers_R1.fastq.gz",
+                "tmp/{sample}_noprimers_R2.fastq.gz",
+            ]
+        else:
+            return ["tmp/{sample}_noprimers_R1.fastq.gz"]
+#        return get_fastq_list(wildcards)
 
 
 def get_all_outputs(wildcards):
@@ -67,13 +75,14 @@ def get_all_outputs(wildcards):
             f"preprocess/multiqc_reports/{config['pool']}_dada2_trimming_report_mqc.out",
             f"preprocess/multiqc_reports/{config['pool']}_adapter_contam_report_mqc.out",
         ]
-        results.extend(
-            expand(
-                "preprocess/primers-removed/{sample}_noprimers_R{d}.fastq.gz",
-                sample=SAMPLES,
-                d=[1, 2],
+        if config["removeprimers"]:
+            results.extend(
+                expand(
+                    "preprocess/primers-removed/{sample}_noprimers_R{d}.fastq.gz",
+                    sample=SAMPLES,
+                    d=[1, 2],
+                )
             )
-        )
     else:
         results = [
             f"preprocess/{config['pool']}_manifest.tsv",
@@ -82,12 +91,13 @@ def get_all_outputs(wildcards):
             f"preprocess/multiqc_reports/{config['pool']}_dada2_trimming_report_mqc.out",
             f"preprocess/multiqc_reports/{config['pool']}_adapter_contam_report_mqc.out",
         ]
-        results.extend(
-            expand(
-                "preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz",
-                sample=SAMPLES,
+        if config["removeprimers"]:
+            results.extend(
+                expand(
+                    "preprocess/primers-removed-se/{sample}_noprimers_R1.fastq.gz",
+                    sample=SAMPLES,
+                )
             )
-        )
     return results
 
 
@@ -95,6 +105,32 @@ rule all:
     input:
         get_all_outputs,
 
+
+rule cp_if_not_removing_primers:
+    """ make a local copy of input data that doesn't require primer removal.
+    FastQC doesn't allow custom output file names, so in order to keep the names consistent we copy them here.
+    symlinking isn't reliable on our cluster.
+    I attempted to add a series of renaming commands after fastqc was run on the raw files, but
+    because the outputs are compressed, the contents still contain the raw (unreliable) file names.
+    This is a little bit of overhead but simplifies things greatly downstream.
+
+    NOTE: if you (for some reason) rename the outputs, make sure to redefine get_fastqs_to_trim()!
+    """
+    input:
+        get_fastq_list
+    output:
+        R1=temp("tmp/{sample}_noprimers_R1.fastq.gz"),
+        R2=temp("tmp/{sample}_noprimers_R2.fastq.gz"),
+    shell:"""
+    # we know the inputs are ordered
+    counter=1
+    touch {output.R2}
+    for f in {input}
+    do
+    cp $f tmp/{wildcards.sample}_noprimers_R${{counter}}.fastq.gz
+    counter=$((counter + 1))
+    done
+   """
 
 rule remove_primers:
     """
@@ -246,12 +282,6 @@ rule output_manifest:
                 )
             except Exception as e:
                 traceback.print_exc(file=ef)
-
-
-# use rule output_manifest as output_manifest_se with:
-#     output:
-#         manifest=f"preprocess-se/{config['pool']}_manifest.tsv",
-#         missing=f"preprocess-se/{config['pool']}_missing_or_incomplete.tsv",
 
 
 rule sample_fastqc_report:

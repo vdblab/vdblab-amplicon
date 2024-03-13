@@ -71,6 +71,23 @@ case $mode in
 	  lib_layout=single \
 	  nshards=2
       ;;
+  preprocess_se_noprimers )
+      snakemake \
+	  --singularity-args "-B ${PWD},/data/brinkvd/,/lila/$PWD/,/lila/data/brinkvd/,/scratch/" \
+	  $commonargs \
+	  --directory tmpprese_np/   \
+	  --config \
+	  stage=preprocess \
+	  sample=473  \
+	  pool="pool1" \
+	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
+	  manifest=$PWD/.test/manifest_se.tsv \
+	  primer_F=AYTGGGYDTAAAGNG \
+	  primer_R=CCGTCAATTYHTTTRAGT \
+	  lib_layout=single \
+	  removeprimers=False \
+	  nshards=2
+      ;;
   denoise_pooled )
       snakemake \
 	  $commonargs \
