@@ -63,6 +63,8 @@ def get_fastqs_to_trim(wildcards):
             ]
         else:
             return ["tmp/{sample}_noprimers_R1.fastq.gz"]
+
+
 #        return get_fastq_list(wildcards)
 
 
@@ -117,11 +119,12 @@ rule cp_if_not_removing_primers:
     NOTE: if you (for some reason) rename the outputs, make sure to redefine get_fastqs_to_trim()!
     """
     input:
-        get_fastq_list
+        get_fastq_list,
     output:
         R1=temp("tmp/{sample}_noprimers_R1.fastq.gz"),
         R2=temp("tmp/{sample}_noprimers_R2.fastq.gz"),
-    shell:"""
+    shell:
+        """
     # we know the inputs are ordered
     counter=1
     touch {output.R2}
@@ -131,6 +134,7 @@ rule cp_if_not_removing_primers:
     counter=$((counter + 1))
     done
    """
+
 
 rule remove_primers:
     """
