@@ -7,6 +7,20 @@ anno_db: /data/brinkvd/resources/dbs/ncbi16S/2022/16S_ribosomal_RNA_id_and_taxon
 
 lib_layout: "paired"
 preprocess_min_read_length: 150
+
+# these defaults are taken from dada2
+dada2_truncQ: 2
+dada2_truncLen: 0
+dada2_trimLeft: 0
+dada2_trimRight: 0
+dada2_maxLen: 0
+dada2_minLen: 20
+dada2_maxN: 0
+dada2_minQ: 0
+dada2_rm.lowcomplex: 0
+dada2_rm.phix: True
+# these are not the defaults
+dada2_maxEE: 2
 trunclen_R1: 200
 trunclen_R2: 180
 min_asv_len: 300
