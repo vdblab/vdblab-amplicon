@@ -78,6 +78,7 @@ rule dada2_learn_errors:
 
 def get_infer_asv_fastq(wildcards):
     tmp = MANIFEST.loc[wildcards.sample, f"R{wildcards.dir}"]
+    print(tmp)
     return tmp
 
 
@@ -152,7 +153,7 @@ rule dada2_remove_chimeras:
 
 rule collect_dada2_sample_metrics:
     input:
-        get_inputs_for_asv_counting,
+        unpack(get_inputs_for_asv_counting),
         merged="denoise/dada2/{sample}_merged.rds",
     output:
         metrics=temp("denoise/dada2/{sample}_dada2_metrics.tsv"),
