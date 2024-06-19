@@ -130,5 +130,5 @@ def get_inputs_for_asv_counting(wildcards):
     else:
         for k, v in inputs.items():
             inputs[k] = v.format(sample=wildcards.sample)
-    #print(inputs)
+    # print(inputs)
     return inputs
