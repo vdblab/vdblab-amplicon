@@ -99,6 +99,7 @@ rule dada2_infer_asvs:
     threads: 16
     resources:
         mem_mb=32 * 1024,
+        runtime=lambda wc, attempt: 4 * 60 * attempt,
     script:
         "../scripts/denoise/dada2_infer_asvs.R"
 
@@ -119,6 +120,7 @@ rule dada2_count_asvs:
     threads: 1
     resources:
         mem_mb=8 * 1024,
+        runtime=lambda wc, attempt: 4 * 60 * attempt,
     script:
         "../scripts/denoise/dada2_count_asvs.R"
 
@@ -147,6 +149,7 @@ rule dada2_remove_chimeras:
     threads: 16
     resources:
         mem_mb=32 * 1024,
+        runtime=lambda wc, attempt: 4 * 60 * attempt,
     script:
         "../scripts/denoise/dada2_remove_chimeras.R"
 
