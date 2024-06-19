@@ -18,6 +18,8 @@ is_paired <- snakemake@params[["is_paired"]]
 filter_trunclen <- c(
   snakemake@params[["trunclen_R1"]], snakemake@params[["trunclen_R2"]]
 )
+maxLen = ifelse(snakemake@params[["maxLen"]] == 0, Inf, snakemake@params[["maxLen"]])
+print(maxLen)
 ncores <- snakemake@threads
 
 packageVersion("dada2")
@@ -29,15 +31,31 @@ if (is_paired){
     out <- data.frame(filterAndTrim(
         inreads[1], out_R1, inreads[2], out_R2,
         truncLen = filter_trunclen,
-        maxN = 0, maxEE = 2, truncQ = 2, rm.phix = TRUE,
-        compress = TRUE, multithread = ncores
+        trimLeft = snakemake@params[["trimLeft"]],
+        trimRight = snakemake@params[["trimRight"]],
+        maxLen = maxLen,
+        maxN = snakemake@params[["maxN"]],
+        maxEE = snakemake@params[["maxEE"]],
+        truncQ = snakemake@params[["truncQ"]],
+        rm.phix = snakemake@params[["rmphix"]],
+        rm.lowcomplex = snakemake@params[["rmlowcomplex"]],
+        compress = TRUE,
+        multithread = ncores
     ))
 } else{
     out <- data.frame(filterAndTrim(
         inreads[1], out_R1,
         truncLen = filter_trunclen[1],
-        maxN = 0, maxEE = 2, truncQ = 2, rm.phix = TRUE,
-        compress = TRUE, multithread = ncores
+        trimLeft = snakemake@params[["trimLeft"]],
+        trimRight = snakemake@params[["trimRight"]],
+        maxLen = maxLen,
+        maxN = snakemake@params[["maxN"]],
+        maxEE = snakemake@params[["maxEE"]],
+        truncQ = snakemake@params[["truncQ"]],
+        rm.phix = snakemake@params[["rmphix"]],
+        rm.lowcomplex = snakemake@params[["rmlowcomplex"]],
+        compress = TRUE,
+        multithread = ncores
     ))
 }
 

@@ -122,9 +122,13 @@ def get_inputs_for_asv_counting(wildcards):
         "dada_R1": "denoise/dada2/{sample}_dada_R1.rds",
     }
     if is_paired():
-        inputs["derep_R2"] = ("denoise/dada2/{sample}_derep_R2.rds",)
+        inputs["derep_R2"] = "denoise/dada2/{sample}_derep_R2.rds"
         inputs["dada_R2"] = "denoise/dada2/{sample}_dada_R2.rds"
     if config["pooling"] != "none":
         for k, v in inputs.items():
             inputs[k] = v.format(sample=config["pool"])
+    else:
+        for k, v in inputs.items():
+            inputs[k] = v.format(sample=wildcards.sample)
+    # print(inputs)
     return inputs

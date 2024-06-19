@@ -49,6 +49,7 @@ case $mode in
 	  pool="pool1" \
 	  oligos=$PWD/.test/amplicon/test_input/pool1059.oligos \
 	  manifest=$PWD/tmpdemux/demux/pool1_manifest.tsv \
+	  dada2_trimLeft=40 \
 	  R1=$R1 \
 	  R2=$R2 \
 	  primer_F=AYTGGGYDTAAAGNG \
