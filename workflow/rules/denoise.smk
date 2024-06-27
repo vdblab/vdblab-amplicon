@@ -71,7 +71,8 @@ rule dada2_learn_errors:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     threads: 16
     resources:
-        mem_mb=32 * 1024,
+        mem_mb=lambda wc, attempt: 32 * 1024 * attempt,
+        runtime=lambda wc, attempt: 6 * 60 * attempt,
     script:
         "../scripts/denoise/dada2_learn_errors.R"
 
@@ -98,7 +99,7 @@ rule dada2_infer_asvs:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     threads: 16
     resources:
-        mem_mb=32 * 1024,
+        mem_mb=lambda wc, attempt: 32 * 1024 * attempt,
         runtime=lambda wc, attempt: 4 * 60 * attempt,
     script:
         "../scripts/denoise/dada2_infer_asvs.R"
@@ -119,8 +120,8 @@ rule dada2_count_asvs:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     threads: 1
     resources:
-        mem_mb=8 * 1024,
         runtime=lambda wc, attempt: 4 * 60 * attempt,
+        mem_mb=lambda wc, attempt: 16 * 1024 * attempt,
     script:
         "../scripts/denoise/dada2_count_asvs.R"
 
@@ -148,7 +149,7 @@ rule dada2_remove_chimeras:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     threads: 16
     resources:
-        mem_mb=32 * 1024,
+        mem_mb=lambda wc, attempt: 32 * 1024 * attempt,
         runtime=lambda wc, attempt: 4 * 60 * attempt,
     script:
         "../scripts/denoise/dada2_remove_chimeras.R"
@@ -166,7 +167,7 @@ rule collect_dada2_sample_metrics:
         e=f"{LOG_PREFIX}/collect_dada2_sample_metrics_{{sample}}.e",
         o=f"{LOG_PREFIX}/collect_dada2_sample_metrics_{{sample}}.o",
     resources:
-        mem_mb=4 * 1024,
+        mem_mb=lambda wc, attempt: 4 * 1024 * attempt,
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     script:
@@ -194,7 +195,7 @@ rule aggregate_metrics:
         e=f"{LOG_PREFIX}/aggregate_metrics.e",
         o=f"{LOG_PREFIX}/aggregate_metrics.o",
     resources:
-        mem_mb=4 * 1024,
+        mem_mb=lambda wc, attempt: 8 * 1024 * attempt,
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     script:
