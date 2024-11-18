@@ -147,10 +147,10 @@ rule dada2_remove_chimeras:
         o=f"{LOG_PREFIX}/dada2_remove_chimeras.o",
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
-    threads: 16
+    threads: 32
     resources:
         mem_mb=lambda wc, attempt: 32 * 1024 * attempt,
-        runtime=lambda wc, attempt: 4 * 60 * attempt,
+        runtime=lambda wc, attempt: 12 * 60 * attempt,
     script:
         "../scripts/denoise/dada2_remove_chimeras.R"
 
