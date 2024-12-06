@@ -1,14 +1,12 @@
 ---
 $schema: "https://json-schema.org/draft/2020-12/schema"
 
-description: vdb_16S demux config schema
+description: vdb_legacy_16S config schema
 
 type: object
 
 properties:
   # inputs
-  pool:
-    type: string
   oligos:
     type: string
   R1:
@@ -22,13 +20,3 @@ properties:
     items:
       type: string
     uniqueItems: true
-
-  # run parameters
-  nshards:
-    type: integer
-    minimum: 1
-    default: 1
-
-required:
-  - pool
-  - oligos
