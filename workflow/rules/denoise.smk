@@ -53,6 +53,7 @@ if is_paired():
 rule all:
     input:
         results,
+        expand("denoise/dada2/{sample}_asv_nochimera_seqtab{se}.rds", sample=SAMPLES, se='' if is_paired() else '-se'),
 
 
 rule dada2_learn_errors:
@@ -132,19 +133,14 @@ use rule dada2_count_asvs as dada2_count_asvs_se with:
 
 
 rule dada2_remove_chimeras:
+    # paired and unpaired steps are the same here on out
     input:
-        seqtab=expand(
-            "denoise/dada2/{sample}_asv_seqtab{se}.rds",
-            sample=SAMPLES,
-            se="" if is_paired() else "-se",
-        ),
+        seqtab=f"denoise/dada2/{{sample}}_asv_seqtab{'' if is_paired() else '-se'}.rds",
     output:
-        seqtab=f"denoise/{config['pool']}_asv_seqtab.tsv",
-        counts=f"denoise/{config['pool']}_asv_counts.tsv",
-        fasta=f"denoise/{config['pool']}_asvs.fasta",
+        seqtab=temp("denoise/dada2/{sample}_asv_nochimera_seqtab.rds"),
     log:
-        e=f"{LOG_PREFIX}/dada2_remove_chimeras.e",
-        o=f"{LOG_PREFIX}/dada2_remove_chimeras.o",
+        e=f"{LOG_PREFIX}/dada2_remove_chimeras_{{sample}}.e",
+        o=f"{LOG_PREFIX}/dada2_remove_chimeras_{{sample}}.o",
     container:
         "docker://ghcr.io/vdblab/dada2:1.20.0"
     threads: 32
@@ -153,6 +149,31 @@ rule dada2_remove_chimeras:
         runtime=lambda wc, attempt: 12 * 60 * attempt,
     script:
         "../scripts/denoise/dada2_remove_chimeras.R"
+
+
+
+rule dada2_merge_post_chimera_removal:
+    input:
+        seqtab=expand(
+            "denoise/dada2/{sample}_asv_nochimera_seqtab{se}.rds",
+            sample=SAMPLES,
+            se="" if is_paired() else "-se",
+        ),
+    output:
+        seqtab=f"denoise/{config['pool']}_asv_seqtab.tsv",
+        counts=f"denoise/{config['pool']}_asv_counts.tsv",
+        fasta=f"denoise/{config['pool']}_asvs.fasta",
+    log:
+        e=f"{LOG_PREFIX}/merge_and_write.e",
+        o=f"{LOG_PREFIX}/merge_and_write.o",
+    container:
+        "docker://ghcr.io/vdblab/dada2:1.20.0"
+    threads: 4
+    resources:
+        mem_mb=lambda wc, attempt: 16 * 1024 * attempt,
+        runtime=lambda wc, attempt: 4 * 60 * attempt,
+    script:
+        "../scripts/denoise/merge_and_write.R"
 
 
 rule collect_dada2_sample_metrics:

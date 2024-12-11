@@ -46,7 +46,36 @@ if (is.null(seqtab)) stop("No valid sequence tables from this run! Exiting")
 sprintf("%s      sequence table samples: %s" , Sys.time(), dim(seqtab)[1])
 sprintf("%s      sequence table ASVs: %s" , Sys.time(), dim(seqtab)[2])
 
-sprintf("%s - running removeBimeraDenovo", Sys.time())
-seqtab <- removeBimeraDenovo(seqtab, method = "consensus", multithread = snakemake@threads)
 sprintf("%s      sequence table without bimera ASVs: %s" , Sys.time(), dim(seqtab)[2])
 saveRDS(seqtab, snakemake@output$seqtab)
+
+
+
+
+
+
+
+sprintf("%s - writing sequence table", Sys.time())
+seqtab |>
+  as_tibble() |>
+  mutate(sample_id = rownames(seqtab)) |>
+  relocate(sample_id) |>
+  write_tsv(snakemake@output$seqtab)
+
+asv_sequences <- colnames(seqtab)
+
+sprintf("%s - writing ASV fasta", Sys.time())
+write_asv_fasta(asv_sequences, snakemake@output$fasta)
+
+
+seqtabfinal_counts_raw <- as.data.frame(seqtab)
+colnames(seqtabfinal_counts_raw) <- get_seq_hash(asv_sequences)
+seqtabfinal_counts_raw$oligos_id <- rownames(seqtab)
+
+seqtabfinal_counts <- seqtabfinal_counts_raw %>%
+  pivot_longer(cols = -oligos_id, names_to = "asv_md5", values_to = "count") %>%
+  filter(count > 0)
+
+sprintf("%s - before writing out asv_counts.csv", Sys.time())
+
+write.csv(seqtabfinal_counts, snakemake@output$counts, row.names = FALSE)
