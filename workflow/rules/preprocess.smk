@@ -30,6 +30,19 @@ onstart:
 localrules:
     all,
 
+def get_num_shards_for_sample(sample):
+    """Calculate number of shards based on file size (1-20 shards)"""
+    try:
+        fq1_size = os.path.getsize(MANIFEST.loc[sample, "R1"])
+        total_size = fq1_size
+        if is_paired():
+            fq2_size = os.path.getsize(MANIFEST.loc[sample, "R2"])
+            total_size += fq2_size
+        
+        size_gb = total_size / (1024**3)
+        return max(1, min(20, math.ceil(size_gb))) #20 seemed like a reasonable upper limit
+    except:
+        return 1
 
 def get_fastq_list(wildcards):
     fqs = [MANIFEST.loc[wildcards.sample, "R1"]]
@@ -135,61 +148,74 @@ rule cp_if_not_removing_primers:
     done
    """
 
-
-rule remove_primers:
-    """
-    Remove primers from fastq files
-
-    It seems reads can either start with the forward or reverse primer,
-    so we provide the -g (--front) arg twice  and --G twice intentionally
-    see here:
-    https://cutadapt.readthedocs.io/en/stable/guide.html?highlight=reverse%20complement#multiple-adapters
-
-    to convince yourself this is the right move, try the following
-    zcat < pool_R1.part_001.fastq.gz | head -n 20 > ./tmp_r_raw.fastq
-    zcat < pool_R2.part_001.fastq.gz | head -n 20 > ./tmp_f_raw.fastq
-
-    The following outputs 3 of the 5 reads
-    docker run --rm -v $PWD:/data/ ghcr.io/vdblab/cutadapt:3.7 \
-
-    cutadapt \
-    -g AYTGGGYDTAAAGNG -G CCGTCAATTYHTTTRAGT \
-    -o /data/out_tmp_f -p /data/out_tmp_r \
-    --discard-untrimmed \
-    /data/tmp_f_raw.fastq /data/tmp_r_raw.fastq
-
-    Where as the following outputs all 5 reads, accounting for those in both orientations
-    docker run --rm -v $PWD:/data/ ghcr.io/vdblab/cutadapt:3.7 \
-    cutadapt \
-    -g AYTGGGYDTAAAGNG -g CCGTCAATTYHTTTRAGT \
-    -G AYTGGGYDTAAAGNG -G CCGTCAATTYHTTTRAGT \
-    -o /data/out_tmp_f -p /data/out_tmp_r \
-    --discard-untrimmed \
-    /data/tmp_f_raw.fastq /data/tmp_r_raw.fastq \
-
-    If using this pipeline with samples collected with a different protocol,
-    this may need to be modified
-    """
+checkpoint split_fastq:
     input:
         reads=get_fastq_list,
     output:
-        R1=temp("preprocess/primers-removed/{sample}_noprimers_R1.fastq.gz"),
-        R2=temp("preprocess/primers-removed/{sample}_noprimers_R2.fastq.gz"),
+        directory("preprocess/chunks/{sample}")
+    run:
+        import subprocess
+        num_shards = get_num_shards_for_sample(wildcards.sample)
+        
+        # If only 1 shard, just symlink the original files
+        if num_shards == 1:
+            os.makedirs(output[0], exist_ok=True)
+            shell(f"ln -sf $(realpath {input.reads[0]}) {output[0]}/chunk_00_R1.fastq.gz")
+            if len(input.reads) > 1:
+                shell(f"ln -sf $(realpath {input.reads[1]}) {output[0]}/chunk_00_R2.fastq.gz")
+        else:
+            # Split the files
+            os.makedirs(output[0], exist_ok=True)
+            
+            # Count reads for splitting
+            if input.reads[0].endswith('.gz'):
+                read_count_cmd = f"zcat {input.reads[0]} | wc -l"
+            else:
+                read_count_cmd = f"wc -l < {input.reads[0]}"
+            
+            total_lines = int(subprocess.check_output(read_count_cmd, shell=True).decode().strip())
+            reads_per_shard = max(1, math.ceil((total_lines // 4) / num_shards))
+            lines_per_shard = reads_per_shard * 4
+            
+            # Split R1
+            if input.reads[0].endswith('.gz'):
+                shell(f"zcat {input.reads[0]} | split -l {lines_per_shard} -d --additional-suffix='_R1.fastq' - {output[0]}/chunk_")
+            else:
+                shell(f"split -l {lines_per_shard} -d --additional-suffix='_R1.fastq' {input.reads[0]} {output[0]}/chunk_")
+            
+            # Split R2 if paired-end
+            if len(input.reads) > 1:
+                if input.reads[1].endswith('.gz'):
+                    shell(f"zcat {input.reads[1]} | split -l {lines_per_shard} -d --additional-suffix='_R2.fastq' - {output[0]}/chunk_")
+                else:
+                    shell(f"split -l {lines_per_shard} -d --additional-suffix='_R2.fastq' {input.reads[1]} {output[0]}/chunk_")
+            
+            # Gzip the chunks
+            shell(f"gzip {output[0]}/chunk_*.fastq")
+
+rule remove_primers_chunk:
+    input:
+        R1="preprocess/chunks/{sample}/chunk_{chunk}_R1.fastq.gz",
+        R2="preprocess/chunks/{sample}/chunk_{chunk}_R2.fastq.gz"
+    output:
+        R1=temp("preprocess/chunks-processed/{sample}/chunk_{chunk}_R1.fastq.gz"),
+        R2=temp("preprocess/chunks-processed/{sample}/chunk_{chunk}_R2.fastq.gz")
     params:
         outstring=lambda wc, input, output: (
             " -o {} -p {} ".format(output.R1, output.R2)
-            if len(input.reads) > 1
+            if os.path.exists(str(input.R2))
             else " -o {}".format(output.R1)
         ),
         primerstring=lambda wc, input, output: (
             " -g correct={F} -g flipped={R} -G flipped={F} -G correct={R}".format(
                 F=config["primer_F"], R=config["primer_R"]
             )
-            if len(input.reads) > 1
+            if os.path.exists(str(input.R2))
             else " -g correct={F} -g flipped={R} ".format(
                 F=config["primer_F"], R=config["primer_R"]
             )
         ),
+        input_files=lambda wc, input: f"{input.R1} {input.R2}" if os.path.exists(str(input.R2)) else str(input.R1),
         preprocess_min_read_length=config["preprocess_min_read_length"],
     container:
         "docker://ghcr.io/vdblab/cutadapt:3.7"
@@ -197,8 +223,8 @@ rule remove_primers:
     resources:
         mem_mb=4 * 1024,
     log:
-        o=f"{LOG_PREFIX}/cutadapt_remove_primers_{{sample}}.o",
-        e=f"{LOG_PREFIX}/cutadapt_remove_primers_{{sample}}.e",
+        o=f"{LOG_PREFIX}/cutadapt_remove_primers_{{sample}}_chunk_{{chunk}}.o",
+        e=f"{LOG_PREFIX}/cutadapt_remove_primers_{{sample}}_chunk_{{chunk}}.e",
     shell:
         """
         cutadapt \
@@ -209,10 +235,47 @@ rule remove_primers:
             --minimum-length {params.preprocess_min_read_length} \
             {params.outstring} \
             --rename='{{header}}  {{adapter_name}}' \
-            {input.reads} \
+            {params.input_files} \
             > {log.o} 2>> {log.e}
         """
 
+def aggregate_primer_chunks(wildcards):
+    checkpoint_output = checkpoints.split_fastq.get(sample=wildcards.sample).output[0]
+    chunks = glob_wildcards(os.path.join(checkpoint_output, "chunk_{chunk}_R1.fastq.gz")).chunk
+    
+    result = {
+        "R1": expand("preprocess/chunks-processed/{sample}/chunk_{chunk}_R1.fastq.gz", 
+                    sample=wildcards.sample, chunk=chunks)
+    }
+    
+    # Check if R2 exists for first chunk to determine if paired-end
+    if os.path.exists(f"{checkpoint_output}/chunk_{chunks[0]}_R2.fastq.gz"):
+        result["R2"] = expand("preprocess/chunks-processed/{sample}/chunk_{chunk}_R2.fastq.gz", 
+                            sample=wildcards.sample, chunk=chunks)
+    
+    return result
+
+rule remove_primers:
+    """
+    Concatenate processed chunks back together
+    """
+    input:
+        unpack(aggregate_primer_chunks)
+    output:
+        R1=temp("preprocess/primers-removed/{sample}_noprimers_R1.fastq.gz"),
+        R2=temp("preprocess/primers-removed/{sample}_noprimers_R2.fastq.gz"),
+    shell:
+        """
+        # Concatenate R1 files
+        cat {input.R1} > {output.R1}
+        
+        # Concatenate R2 files if they exist
+        if [ ! -z "{input.R2}" ]; then
+            cat {input.R2} > {output.R2}
+        else
+            touch {output.R2}
+        fi
+        """
 
 use rule remove_primers as remove_primers_se with:
     output:
